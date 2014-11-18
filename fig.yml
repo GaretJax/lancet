@@ -1,0 +1,8 @@
+DEVCONFIG: &DEVCONFIG
+  image: lancet-dev
+  working_dir: /src
+  volumes:
+    - .:/src
+
+shell:
+  <<: *DEVCONFIG

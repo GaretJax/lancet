@@ -1,0 +1,22 @@
+*.py[cod]
+*.so
+*.egg
+*.egg-info
+dist
+build
+eggs
+sdist
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Sphinx
+docs/_build
