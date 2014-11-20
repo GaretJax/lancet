@@ -24,7 +24,18 @@ to the development and maintenance of a software package.
 * Free software: MIT license
 * Documentation: http://lancet.rtfd.org.
 
+
+Install
+-------
+
+Not yet released on PyPI:
+
+    pipsi install --python=$(which python3) https://github.com/GaretJax/lancet/archive/master.zip
+
+
 Features
 --------
 
 * TODO
+
+See `lancet --help` for additional details.
