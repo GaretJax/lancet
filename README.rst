@@ -38,4 +38,4 @@ Features
 
 * TODO
 
-See `lancet --help` for additional details.
+See http://cl.ly/0u28140B1Y15 and ``lancet --help`` for additional details.
