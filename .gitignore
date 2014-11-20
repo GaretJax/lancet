@@ -6,6 +6,7 @@ dist
 build
 eggs
 sdist
+.venv
 
 # Installer logs
 pip-log.txt
