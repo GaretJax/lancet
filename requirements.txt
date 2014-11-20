@@ -1,1 +1,15 @@
-click>=3.3
+cffi==0.8.6
+click==3.3
+gnureadline==6.3.3
+ipython==2.3.1
+jira==0.32
+keyring==4.0
+oauthlib==0.7.2
+pycparser==2.10
+pygit2==0.21.4
+python-slugify==0.1.0
+requests-oauthlib==0.4.2
+requests==2.4.3
+six==1.8.0
+tlslite==0.4.8
+Unidecode==0.04.16
