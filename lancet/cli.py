@@ -22,11 +22,13 @@ def main(ctx):
 
 
 @click.command()
+@click.option('--base', '-b', 'base_branch')
 @click.argument('issue')
 @click.pass_obj
-def workon(lancet, issue):
+def workon(lancet, issue, base_branch):
     username = lancet.config.get('tracker', 'username')
-    base_branch = lancet.config.get('repository', 'base_branch')
+    if not base_branch:
+        base_branch = lancet.config.get('repository', 'base_branch')
     active_status = lancet.config.get('tracker', 'active_status')
     branch_getter = SlugBranchGetter(base_branch)
 
@@ -89,7 +91,7 @@ def workon(lancet, issue):
 
     with taskstatus('Checking out working branch') as ts:
         lancet.repo.checkout(branch.name)
-        ts.ok('Checked out working branch')
+        ts.ok('Checked out working branch based on "{}"'.format(base_branch))
 
     with taskstatus('Starting harvest timer') as ts:
         lancet.timer.start(issue)
