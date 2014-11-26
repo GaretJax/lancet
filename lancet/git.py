@@ -4,11 +4,13 @@ from slugify import slugify
 
 
 class SlugBranchGetter(object):
+    prefix = 'feature/'
+
     def __init__(self, base_branch='master'):
         self.base_branch = base_branch
 
     def __call__(self, repo, issue):
-        discriminator = 'features/{}'.format(issue.key)
+        discriminator = '{}{}'.format(self.prefix, issue.key)
         slug = slugify(issue.fields.summary[:30])
         full_name = '{}_{}'.format(discriminator, slug)
 
