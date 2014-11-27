@@ -1,3 +1,5 @@
+import re
+
 import keyring
 from pygit2 import Repository
 from jira.client import JIRA
@@ -41,9 +43,17 @@ class Lancet:
     def repo(self):
         return Repository('./.git')
 
-    def get_issue(self, key):
+    def get_issue(self, key=None):
         # TODO: Move this method to the JIRA class
-        if key.isdigit():
+
+        if key is None:
+            # TODO: This should be factored out of here
+            match = re.search(r'feature/([A-Z]{2,}-[0-9]+)',
+                              self.repo.head.name)
+            if match is None:
+                raise Exception('Unable to find current issue.')
+            key = match.group(1)
+        elif key.isdigit():
             project_key = self.config.get('tracker', 'default_project')
             if project_key:
                 key = '{}-{}'.format(project_key, key)

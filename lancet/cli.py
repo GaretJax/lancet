@@ -10,6 +10,66 @@ from .utils import taskstatus
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
+def get_issue(lancet, key=None):
+    with taskstatus('Looking up issue on the issue tracker') as ts:
+        issue = lancet.get_issue(key)
+        summary = issue.fields.summary
+        crop = len(summary) > 40
+        if crop:
+            summary = summary[:40] + '...'
+        ts.ok('Retrieved issue {}: {}'.format(issue.key, summary))
+    return issue
+
+
+def get_transition(lancet, issue, to_status):
+    current_status = issue.fields.status.name
+    if current_status != to_status:
+        transitions = [t['id'] for t in lancet.tracker.transitions(issue)
+                       if t['to']['name'] == to_status]
+        if not transitions:
+            click.secho(
+                'No transition from "{}" to "{}" found, aborting.'
+                .format(current_status, to_status),
+                fg='red', bold=True
+            )
+            sys.exit(1)
+        elif len(transitions) > 1:
+            click.secho(
+                'Multiple transitions found from "{}" to "{}", aborting.'
+                .format(current_status, to_status),
+                fg='red', bold=True
+            )
+            sys.exit(1)
+        else:
+            transition_id = transitions[0]
+    else:
+        transition_id = None
+    return transition_id
+
+
+def assign_issue(lancet, issue, username, active_status=None):
+    with taskstatus('Assigning issue to you') as ts:
+        if issue.fields.assignee.key != username:
+            if issue.fields.status.name == active_status:
+                ts.fail('Issue already active and not assigned to you',
+                        abort=True)
+            else:
+                lancet.tracker.assign_issue(issue, username)
+                ts.ok('Issue assigned to you')
+        else:
+            ts.ok('Issue already assigned to you')
+
+
+def set_issue_status(lancet, issue, to_status, transition):
+    with taskstatus(
+            'Setting issue status to "{}"'.format(to_status)) as ts:
+        if transition is not None:
+            lancet.tracker.transition_issue(issue, transition)
+            ts.ok('Issue status set to "{}"'.format(to_status))
+        else:
+            ts.ok('Issue already "{}"'.format(to_status))
+
+
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.pass_context
 def main(ctx):
@@ -33,61 +93,19 @@ def workon(lancet, issue, base_branch):
     branch_getter = SlugBranchGetter(base_branch)
 
     # Get the issue
-    with taskstatus('Looking up issue on the issue tracker') as ts:
-        issue = lancet.get_issue(issue)
-        summary = issue.fields.summary
-        crop = len(summary) > 40
-        if crop:
-            summary = summary[:40] + '...'
-        ts.ok('Retrieved issue {}: {}'.format(issue.key, summary))
+    issue = get_issue(lancet, issue)
 
     # Get the working branch
     branch = branch_getter(lancet.repo, issue)
 
     # Make sure the issue is in a correct status
-    current_status = issue.fields.status.name
-    if current_status != active_status:
-        transitions = [t['id'] for t in lancet.tracker.transitions(issue)
-                       if t['to']['name'] == active_status]
-        if not transitions:
-            click.secho(
-                'No transition from "{}" to "{}" found, aborting.'
-                .format(current_status, active_status),
-                fg='red', bold=True
-            )
-            sys.exit(1)
-        elif len(transitions) > 1:
-            click.secho(
-                'Multiple transitions found from "{}" to "{}", aborting.'
-                .format(current_status, active_status),
-                fg='red', bold=True
-            )
-            sys.exit(1)
-        else:
-            transition_id = transitions[0]
-    else:
-        transition_id = None
+    transition = get_transition(lancet, issue, active_status)
 
     # Make sure the issue is assigned to us
-    with taskstatus('Assigning issue to you') as ts:
-        if issue.fields.assignee.key != username:
-            if current_status == active_status:
-                ts.fail('Issue already active and not assigned to you',
-                        abort=True)
-            else:
-                lancet.tracker.assign_issue(issue, username)
-                ts.ok('Issue assigned to you')
-        else:
-            ts.ok('Issue already assigned to you')
+    assign_issue(lancet, issue, username, active_status)
 
     # Activate environment
-    with taskstatus(
-            'Setting issue status to "{}"'.format(active_status)) as ts:
-        if transition_id is not None:
-            lancet.tracker.transition_issue(issue, transitions[0])
-            ts.ok('Issue status set to "{}"'.format(active_status))
-        else:
-            ts.ok('Issue already in the correct status')
+    set_issue_status(lancet, issue, active_status, transition)
 
     with taskstatus('Checking out working branch') as ts:
         lancet.repo.checkout(branch.name)
@@ -103,18 +121,55 @@ main.add_command(workon)
 @click.command()
 @click.pass_obj
 def pause(lancet):
-    with taskstatus('Putting issue on hold') as ts:
-        ts.fail('Putting issue on hold not implemented yet')
+    paused_status = lancet.config.get('tracker', 'paused_status')
+
+    # Get the issue
+    issue = get_issue(lancet)
+
+    # Make sure the issue is in a correct status
+    transition = get_transition(lancet, issue, paused_status)
+
+    # Activate environment
+    set_issue_status(lancet, issue, paused_status, transition)
+
     with taskstatus('Pausing harvest timer') as ts:
         lancet.timer.pause()
         ts.ok('Harvest timer paused')
+
 main.add_command(pause)
 
 
 @click.command()
 @click.pass_obj
 def resume(lancet):
-    pass
+    username = lancet.config.get('tracker', 'username')
+    active_status = lancet.config.get('tracker', 'active_status')
+
+    # Get the issue
+    issue = get_issue(lancet)
+
+    # Make sure the issue is in a correct status
+    transition = get_transition(lancet, issue, active_status)
+
+    # Make sure the issue is assigned to us
+    assign_issue(lancet, issue, username, active_status)
+
+    # Activate environment
+    set_issue_status(lancet, issue, active_status, transition)
+
+    with taskstatus('Resuming harvest timer') as ts:
+        lancet.timer.start(issue)
+        ts.ok('Resumed harvest timer')
+
+main.add_command(resume)
+
+
+@click.command()
+@click.pass_obj
+def browse(lancet):
+    click.launch(lancet.get_issue().permalink())
+
+main.add_command(browse)
 
 
 # TODO:
