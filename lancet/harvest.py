@@ -65,10 +65,10 @@ class HarvestAPI:
 class HarvestPlatform(HarvestAPI):
     platform_url = 'https://platform.harvestapp.com'
 
-    def __init__(self, server, basic_auth, project_id, task_id):
+    def __init__(self, server, basic_auth, project_id_getter, task_id):
         self.session = requests.Session()
         self.task_id = task_id
-        self.project_id = project_id
+        self.get_project_id = project_id_getter
         self._csrf_token = None
         super().__init__(server, basic_auth)
 
@@ -125,7 +125,7 @@ class HarvestPlatform(HarvestAPI):
         })
         data = {
             'utf8': '✓',
-            'project_id': self.project_id,
+            'project_id': self.get_project_id(issue),
             'task_id': self.task_id,
             'notes': name,
             'hours': '',
