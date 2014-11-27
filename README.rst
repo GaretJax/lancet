@@ -30,12 +30,16 @@ Install
 
 Not yet released on PyPI:
 
+    brew install libgit2
     pipsi install --python=$(which python3) https://github.com/GaretJax/lancet/archive/master.zip
 
 
 Features
 --------
 
-* TODO
+* Start tasks (create branch, set correct issue status/assignee, start linked harvest timer)
+* Suspend tasks (pause harvest timer, set issue status)
+* Resume tasks (resume timer, set issue status)
+* Rapidly open issue tracker task page
 
 See http://cl.ly/0u28140B1Y15 and ``lancet --help`` for additional details.
