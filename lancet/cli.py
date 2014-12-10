@@ -119,6 +119,22 @@ main.add_command(workon)
 
 
 @click.command()
+@click.argument('issue')
+@click.pass_obj
+def time(lancet, issue):
+    """
+    Just start a correctly linked Harvest timer for the given issue.
+    """
+    issue = get_issue(lancet, issue)
+
+    with taskstatus('Starting harvest timer') as ts:
+        lancet.timer.start(issue)
+        ts.ok('Started harvest timer')
+
+main.add_command(time)
+
+
+@click.command()
 @click.pass_obj
 def pause(lancet):
     paused_status = lancet.config.get('tracker', 'paused_status')
