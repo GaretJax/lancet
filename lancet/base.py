@@ -1,11 +1,13 @@
 import re
+import click
 
 import keyring
 from pygit2 import Repository
 from jira.client import JIRA
+from jira.exceptions import JIRAError
 
-from .harvest import HarvestPlatform
-from .utils import cached_property
+from .harvest import HarvestPlatform, HarvestAPI, HarvestError
+from .utils import cached_property, taskstatus
 
 
 class MappedProjectID:
@@ -43,6 +45,39 @@ class Lancet:
     def repo(self):
         return Repository('./.git')
 
+    def get_credentials(self, service, checker=None):
+        url = self.config.get(service, 'url')
+        username = self.config.get(service, 'username')
+        key = 'lancet+{}'.format(url)
+        if username:
+            password = keyring.get_password(key, username)
+            if password:
+                return url, username, password
+
+        with taskstatus.suspend():
+            while True:
+                click.echo(
+                    'Please provide your authentication information for {}'
+                    .format(url)
+                )
+                if not username:
+                    username = click.prompt('Username')
+                else:
+                    click.echo('Username: {}'.format(username))
+                password = click.prompt('Password', hide_input=True)
+
+                if checker:
+                    with taskstatus('Checking provided credentials') as ts:
+                        if not checker(url, username, password):
+                            ts.fail('Login failed')
+                            username, password = None, None
+                            continue
+                        else:
+                            ts.ok('Correctly authenticated to {}', url)
+
+                keyring.set_password(key, username, password)
+                return url, username, password
+
     def get_issue(self, key=None):
         # TODO: Move this method to the JIRA class
 
@@ -61,16 +96,29 @@ class Lancet:
 
     @cached_property
     def tracker(self):
-        url = self.config.get('tracker', 'url')
-        username = self.config.get('tracker', 'username')
-        password = keyring.get_password('lancet+{}'.format(url), username)
+        def checker(url, username, password):
+            try:
+                JIRA(server=url, basic_auth=(username, password))
+            except JIRAError:
+                return False
+            else:
+                return True
+
+        url, username, password = self.get_credentials('tracker', checker)
         return JIRA(server=url, basic_auth=(username, password))
 
     @cached_property
     def timer(self):
-        url = self.config.get('harvest', 'url')
-        username = self.config.get('harvest', 'username')
-        password = keyring.get_password('harvest+{}'.format(url), username)
+        def checker(url, username, password):
+            api = HarvestAPI(url, (username, password))
+            try:
+                api.whoami()
+            except HarvestError:
+                return False
+            else:
+                return True
+
+        url, username, password = self.get_credentials('harvest', checker)
         task_id = self.config.get('harvest', 'task_id')
         project_id_getter = MappedProjectID.fromstring(
             self.config.get('harvest', 'project_id'))

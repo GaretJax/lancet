@@ -32,14 +32,22 @@ def requires_login(func):
     return wrapper
 
 
+class HarvestError(Exception):
+    pass
+
+
 class HarvestAPI:
     def __init__(self, server, basic_auth):
         self.server = server
         self.auth = basic_auth
 
     def _get(self, url):
-        return requests.get(urljoin(self.server, url), auth=self.auth,
-                            headers={'accept': 'application/json'}).json()
+        r = requests.get(urljoin(self.server, url), auth=self.auth,
+                         headers={'accept': 'application/json'})
+        payload = r.json()
+        if r.status_code != 200:
+            raise HarvestError(payload['message'])
+        return payload
 
     def _post(self, url, data):
         return requests.post(urljoin(self.server, url), auth=self.auth,
@@ -57,6 +65,9 @@ class HarvestAPI:
         else:
             # No running timers
             pass
+
+    def whoami(self):
+        return self._get('account/who_am_i')
 
     def daily(self):
         return self._get('daily')['day_entries']

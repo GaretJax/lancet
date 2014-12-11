@@ -22,22 +22,24 @@ Lancet is a command line utility to streamline the various activities related
 to the development and maintenance of a software package.
 
 * Free software: MIT license
-* Documentation: http://lancet.rtfd.org.
+* Documentation: http://lancet.rtfd.org (TODO).
 
 
-Install
--------
+Installation
+------------
 
-Not yet released on PyPI:
+You can install `lancet` from PyPI. The suggested way to get it on your system
+is by using `pipsi`::
 
     brew install libgit2
-    pipsi install --python=$(which python3) https://github.com/GaretJax/lancet/archive/master.zip
+    pipsi install --python=$(which python3) lancet
 
 
 Features
 --------
 
-* Start tasks (create branch, set correct issue status/assignee, start linked harvest timer)
+* Start tasks (create branch, set correct issue status/assignee, start
+  linked harvest timer)
 * Suspend tasks (pause harvest timer, set issue status)
 * Resume tasks (resume timer, set issue status)
 * Rapidly open issue tracker task page

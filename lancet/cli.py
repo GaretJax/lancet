@@ -1,7 +1,10 @@
 import sys
+import os
 import click
+import keyring
+import configparser
 
-from .settings import load_config
+from .settings import load_config, USER_CONFIG
 from .git import SlugBranchGetter
 from .base import Lancet
 from .utils import taskstatus
@@ -86,6 +89,21 @@ def main(ctx):
 @click.argument('issue')
 @click.pass_obj
 def workon(lancet, issue, base_branch):
+    """
+    Start work on a given issue.
+
+    This command retrieves the issue from the issue tracker, creates and checks
+    out a new aptly-named branch, puts the issue in the configured active,
+    status, assigns it to you and starts a correctly linked Harvest timer.
+
+    If a branch with the same name as the one to be created already exists, it
+    is checked out instead. Variations in the branch name occuring after the
+    issue ID are accounted for and the branch renamed to match the new issue
+    summary.
+
+    If the `default_project` directive is correctly configured, it is enough to
+    give the issue ID (instead of the full project prefix + issue ID).
+    """
     username = lancet.config.get('tracker', 'username')
     if not base_branch:
         base_branch = lancet.config.get('repository', 'base_branch')
@@ -123,7 +141,10 @@ main.add_command(workon)
 @click.pass_obj
 def time(lancet, issue):
     """
-    Just start a correctly linked Harvest timer for the given issue.
+    Start an Harvest timer for the given issue.
+
+    This command takes care of linking the timer with the issue tracker page
+    for the given issue.
     """
     issue = get_issue(lancet, issue)
 
@@ -137,6 +158,12 @@ main.add_command(time)
 @click.command()
 @click.pass_obj
 def pause(lancet):
+    """
+    Pause work on the current issue.
+
+    This command puts the issue in the configured paused status and stops the
+    current Harvest timer.
+    """
     paused_status = lancet.config.get('tracker', 'paused_status')
 
     # Get the issue
@@ -158,6 +185,11 @@ main.add_command(pause)
 @click.command()
 @click.pass_obj
 def resume(lancet):
+    """
+    Resume work on the currently active issue.
+
+    The issue is retrieved from the currently active branch name.
+    """
     username = lancet.config.get('tracker', 'username')
     active_status = lancet.config.get('tracker', 'active_status')
 
@@ -181,14 +213,86 @@ main.add_command(resume)
 
 
 @click.command()
+@click.argument('issue')
 @click.pass_obj
-def browse(lancet):
-    click.launch(lancet.get_issue().permalink())
+def browse(lancet, issue=None):
+    """
+    Open the issue tracker page for the given issue in your default browser.
+
+    If no issue is provided, the one linked to the current branch is assumed.
+    """
+    click.launch(get_issue(lancet, issue).permalink())
 
 main.add_command(browse)
 
 
+@click.command()
+@click.option('-f', '--force/--no-force', default=False)
+@click.pass_obj
+def setup(lancet, force):
+    """
+    Run a wizard to create the user-level configuration file.
+    """
+    if os.path.exists(USER_CONFIG) and not force:
+        click.secho(
+            'An existing configuration file was found at "{}".\n'
+            .format(USER_CONFIG),
+            fg='red', bold=True
+        )
+        click.secho(
+            'Please remove it before in order to run the setup wizard or use\n'
+            'the --force flag to overwrite it.'
+        )
+        sys.exit(1)
+
+    tracker_url = click.prompt('URL of the issue tracker')
+    tracker_user = click.prompt('Username for {}'.format(tracker_url))
+    timer_url = click.prompt('URL of the time tracker')
+    timer_user = click.prompt('Username for {}'.format(timer_url))
+
+    config = configparser.ConfigParser()
+
+    config.add_section('tracker')
+    config.set('tracker', 'url', tracker_url)
+    config.set('tracker', 'username', tracker_user)
+
+    config.add_section('harvest')
+    config.set('harvest', 'url', timer_url)
+    config.set('harvest', 'username', timer_user)
+
+    with open(USER_CONFIG, 'w') as fh:
+        config.write(fh)
+
+    click.secho('\nConfiguration correctly written to "{}".'
+                .format(USER_CONFIG), fg='green')
+
+main.add_command(setup)
+
+
+@click.command()
+@click.pass_obj
+def logout(lancet):
+    """
+    Forget saved passwords for the web services.
+    """
+    services = ['tracker', 'harvest']
+
+    for service in services:
+        url = lancet.config.get(service, 'url')
+        key = 'lancet+{}'.format(url)
+        username = lancet.config.get(service, 'username')
+        with taskstatus('Logging out from {}', url) as ts:
+            if keyring.get_password(key, username):
+                keyring.delete_password(key, username)
+                ts.ok('Logged out from {}', url)
+            else:
+                ts.ok('Already logged out from {}', url)
+
+main.add_command(logout)
+
+
 # TODO:
+# * init (project)
 # * pullrequest
 #     push
 #     pull-request

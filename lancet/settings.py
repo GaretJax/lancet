@@ -7,11 +7,18 @@ import configparser
 
 
 PACKAGE = 'lancet'
+
+DEFAULT_CONFIG = os.path.join(os.path.dirname(__file__),
+                              'default-settings.ini')
+SYSTEM_CONFIG = '/etc/{0}/{0}.conf'.format(PACKAGE)
+USER_CONFIG = os.path.expanduser('~/.{}'.format(PACKAGE))
+PROJECT_CONFIG = os.path.join(os.path.realpath('.'), '.{}'.format(PACKAGE))
+
 DEFAULT_FILES = [
-    os.path.join(os.path.dirname(__file__), 'default-settings.ini'),
-    '/etc/{0}/{0}.conf'.format(PACKAGE),
-    os.path.expanduser('~/.{}'.format(PACKAGE)),
-    os.path.join(os.path.realpath('.'), '.{}'.format(PACKAGE)),
+    DEFAULT_CONFIG,
+    SYSTEM_CONFIG,
+    USER_CONFIG,
+    PROJECT_CONFIG,
 ]
 
 
