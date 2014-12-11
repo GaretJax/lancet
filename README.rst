@@ -28,11 +28,15 @@ to the development and maintenance of a software package.
 Installation
 ------------
 
-You can install ``lancet`` from PyPI_. The suggested way to get it on your system
-is by using pipsi_::
+You can install ``lancet`` from PyPI_. The suggested way to get it on your
+system is by using pipsi_::
 
    brew install libgit2
    pipsi install --python=$(which python3) lancet
+
+Please note that the development version of pipsi is currently needed to
+support installing Python 3 packages (and yes, ``lancet`` only runs under
+python3).
 
 .. _PyPI: https://pypi.python.org/pypi/lancet
 .. _pipsi: https://github.com/mitsuhiko/pipsi
