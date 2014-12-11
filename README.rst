@@ -3,13 +3,13 @@ LANCET
 ======
 
 .. image:: https://badge.fury.io/py/lancet.png
-    :target: http://badge.fury.io/py/lancet
+   :target: http://badge.fury.io/py/lancet
 
 .. image:: https://travis-ci.org/GaretJax/lancet.png?branch=master
-        :target: https://travis-ci.org/GaretJax/lancet
+   :target: https://travis-ci.org/GaretJax/lancet
 
 .. image:: https://pypip.in/d/lancet/badge.png
-        :target: https://crate.io/packages/lancet?version=latest
+   :target: https://crate.io/packages/lancet?version=latest
 
 
 From http://en.wikipedia.org/wiki/Scalpel:
@@ -28,11 +28,11 @@ to the development and maintenance of a software package.
 Installation
 ------------
 
-You can install `lancet` from PyPI. The suggested way to get it on your system
-is by using `pipsi`::
+You can install ``lancet`` from PyPI. The suggested way to get it on your system
+is by using ``pipsi``::
 
-    brew install libgit2
-    pipsi install --python=$(which python3) lancet
+   brew install libgit2
+   pipsi install --python=$(which python3) lancet
 
 
 Features
@@ -44,4 +44,18 @@ Features
 * Resume tasks (resume timer, set issue status)
 * Rapidly open issue tracker task page
 
-See http://cl.ly/0u28140B1Y15 and ``lancet --help`` for additional details.
+See http://cl.ly/0u28140B1Y15 and ``lancet --help`` for additional details::
+
+   Usage: lancet [OPTIONS] COMMAND [ARGS]...
+
+   Options:
+   -h, --help  Show this message and exit.
+
+   Commands:
+   browse  Open the issue tracker page for the given...
+   logout  Forget saved passwords for the web services.
+   pause   Pause work on the current issue.
+   resume  Resume work on the currently active issue.
+   setup   Run a wizard to create the user-level...
+   time    Start an Harvest timer for the given issue.
+   workon  Start work on a given issue.
