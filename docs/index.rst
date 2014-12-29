@@ -1,22 +1,27 @@
-.. Lancet documentation master file, created by
-   sphinx-quickstart on Mon Dec 29 15:43:00 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
+==================================
 Welcome to Lancet's documentation!
 ==================================
 
-Contents:
+
+Introduction
+------------
+
+From http://en.wikipedia.org/wiki/Scalpel:
+
+   A scalpel, or lancet, is a small and extremely sharp bladed instrument used
+   for surgery, anatomical dissection, and various arts and crafts (called a
+   hobby knife).
+
+Lancet is a command line utility to streamline the various activities related
+to the development and maintenance of a software package.
+
+
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+   installation
+   configuration
+   commands
