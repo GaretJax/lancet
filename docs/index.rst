@@ -2,6 +2,14 @@
 Welcome to Lancet's documentation!
 ==================================
 
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   installation
+   configuration
+   commands
+
 
 Introduction
 ------------
@@ -16,12 +24,20 @@ Lancet is a command line utility to streamline the various activities related
 to the development and maintenance of a software package.
 
 
-Contents
+Features
 --------
 
-.. toctree::
-   :maxdepth: 2
+* Start tasks (create branch, set correct issue status/assignee, start linked
+  harvest timer);
+* Suspend tasks (pause harvest timer, set issue status);
+* Resume tasks (resume timer, set issue status);
+* Rapidly open issue tracker task page.
 
-   installation
-   configuration
-   commands
+See http://cl.ly/0u28140B1Y15 for a short visual demo.
+
+
+TODOs
+-----
+
+See the `issue tracker <https://github.com/garetjax/lancet/issues>`_ for more
+details.
