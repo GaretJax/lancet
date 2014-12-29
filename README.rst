@@ -11,6 +11,11 @@ LANCET
 .. image:: https://pypip.in/d/lancet/badge.png
    :target: https://crate.io/packages/lancet?version=latest
 
+.. image:: https://pypip.in/v/lancet/badge.png
+   :target: https://crate.io/packages/lancet/
+   
+.. image:: https://readthedocs.org/projects/lancet/badge/?version=latest
+   :target: http://lancet.readthedocs.org/en/latest/
 
 From http://en.wikipedia.org/wiki/Scalpel:
 
@@ -22,7 +27,7 @@ Lancet is a command line utility to streamline the various activities related
 to the development and maintenance of a software package.
 
 * Free software: MIT license
-* Documentation: http://lancet.rtfd.org (TODO).
+* Documentation: http://lancet.rtfd.org
 
 
 Installation
