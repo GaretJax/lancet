@@ -80,7 +80,10 @@ def main(ctx):
     # TODO: Remove me once not needed anymore
     import warnings
     warnings.simplefilter('ignore', ImportWarning, 2150)
-    warnings.simplefilter('ignore', ResourceWarning)
+
+    # TODO: Enable this using a command line switch
+    # import logging
+    # logging.basicConfig(level=logging.DEBUG)
 
     ctx.obj = Lancet(load_config())
     ctx.obj.call_on_close = ctx.call_on_close
