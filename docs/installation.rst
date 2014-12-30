@@ -31,21 +31,13 @@ At the time of writing, the latest release of ``pipsi`` (0.8) does not support
 Python 3. In order to install ``lancet``, we need to install the development
 version of ``pipsi``. This can be achieved with the following commands:
 
-1. Install the current release::
+1. Install the current stable release::
 
       curl https://raw.githubusercontent.com/mitsuhiko/pipsi/master/get-pipsi.py | python
 
-2. Activate ``pipsi``'s own virtualenv::
+2. Upgrade to the latest development release::
 
-      source ~/.local/venvs/pipsi/bin/activate
-
-3. Install the latest development release::
-
-      pip install -U https://github.com/mitsuhiko/pipsi/archive/master.zip
-
-4. Exit the virtualenv::
-
-      deactivate
+      ~/.local/venvs/pipsi/bin/pip install -U https://github.com/mitsuhiko/pipsi/archive/master.zip
 
 .. _homepage: https://github.com/mitsuhiko/pipsi
 
