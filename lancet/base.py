@@ -3,9 +3,8 @@ import click
 
 import keyring
 from pygit2 import Repository
-from jira.client import JIRA
-from jira.exceptions import JIRAError
 
+from .jira import JIRA, JIRAError
 from .harvest import HarvestPlatform, HarvestAPI, HarvestError
 from .utils import cached_property, taskstatus
 
@@ -105,7 +104,9 @@ class Lancet:
                 return True
 
         url, username, password = self.get_credentials('tracker', checker)
-        return JIRA(server=url, basic_auth=(username, password))
+        tracker = JIRA(server=url, basic_auth=(username, password))
+        self.call_on_close(tracker.close)
+        return tracker
 
     @cached_property
     def timer(self):
@@ -122,7 +123,9 @@ class Lancet:
         task_id = self.config.get('harvest', 'task_id')
         project_id_getter = MappedProjectID.fromstring(
             self.config.get('harvest', 'project_id'))
-        return HarvestPlatform(server=url,
-                               basic_auth=(username, password),
-                               project_id_getter=project_id_getter,
-                               task_id=task_id)
+        timer = HarvestPlatform(server=url,
+                                basic_auth=(username, password),
+                                project_id_getter=project_id_getter,
+                                task_id=task_id)
+        self.call_on_close(timer.close)
+        return timer

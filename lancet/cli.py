@@ -82,6 +82,7 @@ def main(ctx):
     warnings.simplefilter('ignore', ResourceWarning)
 
     ctx.obj = Lancet(load_config())
+    ctx.obj.call_on_close = ctx.call_on_close
 
 
 @click.command()

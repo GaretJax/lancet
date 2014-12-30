@@ -40,18 +40,21 @@ class HarvestAPI:
     def __init__(self, server, basic_auth):
         self.server = server
         self.auth = basic_auth
+        self._session = requests.Session()
+        self._session.auth = basic_auth
+        self._session.headers = {
+            'accept': 'application/json'
+        }
 
     def _get(self, url):
-        r = requests.get(urljoin(self.server, url), auth=self.auth,
-                         headers={'accept': 'application/json'})
+        r = self._session.get(urljoin(self.server, url))
         payload = r.json()
         if r.status_code != 200:
             raise HarvestError(payload['message'])
         return payload
 
     def _post(self, url, data):
-        return requests.post(urljoin(self.server, url), auth=self.auth,
-                             headers={'accept': 'application/json'}).json()
+        return self._session.post(urljoin(self.server, url)).json()
 
     def toggle(self, id):
         return self._get('daily/timer/{}'.format(id))
@@ -72,12 +75,15 @@ class HarvestAPI:
     def daily(self):
         return self._get('daily')['day_entries']
 
+    def close(self):
+        self._session.close()
+
 
 class HarvestPlatform(HarvestAPI):
     platform_url = 'https://platform.harvestapp.com'
 
     def __init__(self, server, basic_auth, project_id_getter, task_id):
-        self.session = requests.Session()
+        self._web_session = requests.Session()
         self.task_id = task_id
         self.get_project_id = project_id_getter
         self._csrf_token = None
@@ -85,13 +91,13 @@ class HarvestPlatform(HarvestAPI):
 
     def _get_csrf_token(self):
         if not self._csrf_token:
-            r = self.session.get(urljoin(self.server, '/account/login'))
+            r = self._web_session.get(urljoin(self.server, '/account/login'))
             self._csrf_token = get_meta_content(r.text, 'csrf-token')
         return self._csrf_token
 
     def _login(self):
         # TODO: Cache the harvest session across commands invocations
-        if '_harvest_sess' in self.session.cookies:
+        if '_harvest_sess' in self._web_session.cookies:
             return
         data = {
             'utf8': '✓',
@@ -99,7 +105,7 @@ class HarvestPlatform(HarvestAPI):
             'user[email]': self.auth[0],
             'user[password]': self.auth[1],
         }
-        self.session.post(
+        self._web_session.post(
             urljoin(self.server, '/account/create_session'),
             data=data,
         )
@@ -146,10 +152,14 @@ class HarvestPlatform(HarvestAPI):
             'x-csrf-token': self._get_csrf_token(),
             'x-requested-with': 'XMLHttpRequest',
         }
-        r = self.session.post(
+        r = self._web_session.post(
             urljoin(self.platform_url, '/platform/timer?{}'.format(qs)),
             data=data,
             headers=headers,
         )
         assert r.status_code == 200
         assert 'message' in r.json()
+
+    def close(self):
+        self._web_session.close()
+        super(HarvestPlatform, self).close()
