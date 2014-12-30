@@ -4,7 +4,7 @@ Installation
 
 
 Requirements
-------------
+============
 
 The following carefully crafted software packages are needed to install
 ``lancet``:
@@ -19,7 +19,7 @@ Required `Python packages`_ are automatically installed.
 
 
 ``pipsi``-dev
--------------
+=============
 
 It is suggested to use ``pipsi`` to install ``lancet`` for production use.
 ``pipsi`` creates and manages isolated virtual environments for specific
@@ -51,7 +51,7 @@ version of ``pipsi``. This can be achieved with the following commands:
 
 
 Installation
-------------
+============
 
 ``lancet`` can be installed as any other Python package (``pip``,
 ``easy_install``, ...), but it is recommended to use ``pipsi``.
@@ -64,7 +64,7 @@ running the following command::
 
 
 Upgrading from a previous version
----------------------------------
+=================================
 
 If you used ``pipsi`` to install ``lancet``, you can upgrade to the latest
 version of ``lancet`` by running::

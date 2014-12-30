@@ -12,7 +12,7 @@ Welcome to Lancet's documentation!
 
 
 Introduction
-------------
+============
 
 From http://en.wikipedia.org/wiki/Scalpel:
 
@@ -25,7 +25,7 @@ to the development and maintenance of a software package.
 
 
 Features
---------
+========
 
 * Start tasks (create branch, set correct issue status/assignee, start linked
   harvest timer);
@@ -37,7 +37,7 @@ See http://cl.ly/0u28140B1Y15 for a short visual demo.
 
 
 TODOs
------
+=====
 
 See the `issue tracker <https://github.com/garetjax/lancet/issues>`_ for more
 details.
