@@ -62,3 +62,12 @@ If you used ``pipsi`` to install ``lancet``, you can upgrade to the latest
 version of ``lancet`` by running::
 
    pipsi upgrade lancet
+
+
+Upgrading a package installed in editable mode
+----------------------------------------------
+
+When installing the package in editable mode, using ``pip``'s ``-e`` flag, the
+distribution can be updated with the following command::
+
+    ~/.local/venvs/lancet/bin/pip install -e path/to/the/project
