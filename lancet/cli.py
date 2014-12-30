@@ -218,9 +218,9 @@ main.add_command(resume)
 
 
 @click.command()
-@click.argument('issue')
+@click.argument('issue', required=False)
 @click.pass_obj
-def browse(lancet, issue=None):
+def browse(lancet, issue):
     """
     Open the issue tracker page for the given issue in your default browser.
 
