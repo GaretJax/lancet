@@ -3,6 +3,18 @@ Installation
 ============
 
 
+TL;DR
+=====
+
+::
+
+   brew update
+   brew install python3 libgit2
+   curl https://raw.githubusercontent.com/mitsuhiko/pipsi/master/get-pipsi.py | python
+   ~/.local/venvs/pipsi/bin/pip install -U https://github.com/mitsuhiko/pipsi/archive/master.zip
+   pipsi install --python=$(which python3) lancet
+
+
 Requirements
 ============
 
