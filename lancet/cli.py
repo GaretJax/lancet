@@ -52,7 +52,8 @@ def get_transition(lancet, issue, to_status):
 
 def assign_issue(lancet, issue, username, active_status=None):
     with taskstatus('Assigning issue to you') as ts:
-        if issue.fields.assignee.key != username:
+        assignee = issue.fields.assignee
+        if not assignee or assignee.key != username:
             if issue.fields.status.name == active_status:
                 ts.fail('Issue already active and not assigned to you',
                         abort=True)
