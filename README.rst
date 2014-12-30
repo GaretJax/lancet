@@ -14,6 +14,10 @@ LANCET
 .. image:: https://readthedocs.org/projects/lancet/badge/?version=latest
    :target: http://lancet.readthedocs.org/en/latest/
 
+.. image:: https://requires.io/github/GaretJax/lancet/requirements.svg?branch=master
+   :target: https://requires.io/github/GaretJax/lancet/requirements/?branch=master
+   :alt: Requirements Status
+
 From http://en.wikipedia.org/wiki/Scalpel:
 
     A scalpel, or lancet, is a small and extremely sharp bladed instrument used
