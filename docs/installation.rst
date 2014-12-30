@@ -27,7 +27,7 @@ The following carefully crafted software packages are needed to install
 
 Required `Python packages`_ are automatically installed.
 
-.. _python packages: https://github.com/GaretJax/lancet/blob/master/requirements
+.. _python packages: https://github.com/GaretJax/lancet/blob/master/requirements.txt
 
 
 ``pipsi``-dev
