@@ -7,7 +7,7 @@ LANCET
 
 .. image:: https://pypip.in/d/lancet/badge.png
    :target: https://crate.io/packages/lancet?version=latest
-   
+
 .. image:: https://travis-ci.org/GaretJax/lancet.png?branch=master
    :target: https://travis-ci.org/GaretJax/lancet
 
@@ -28,24 +28,15 @@ to the development and maintenance of a software package.
 
 
 Installation
-------------
+============
 
-You can install ``lancet`` from PyPI_. The suggested way to get it on your
-system is by using pipsi_::
+Check out the documentation_.
 
-   brew install libgit2
-   pipsi install --python=$(which python3) lancet
-
-Please note that the development version of pipsi is currently needed to
-support installing Python 3 packages (and yes, ``lancet`` only runs under
-python3).
-
-.. _PyPI: https://pypi.python.org/pypi/lancet
-.. _pipsi: https://github.com/mitsuhiko/pipsi
+.. _documentation: http://lancet.readthedocs.org/en/latest/installation/
 
 
 Getting started
----------------
+===============
 
 Once installed, set up the initial configuration by running::
 
@@ -59,34 +50,9 @@ TODO: For each not-yet-configured project, you can then run::
 This creates a new project-level configuration file that can be shared across
 different users (and thus commited to source control).
 
-Features
---------
-
-* Start tasks (create branch, set correct issue status/assignee, start
-  linked harvest timer)
-* Suspend tasks (pause harvest timer, set issue status)
-* Resume tasks (resume timer, set issue status)
-* Rapidly open issue tracker task page
-
-See http://cl.ly/0u28140B1Y15 for a short visual demo and ``lancet --help``
-for additional details::
-
-   Usage: lancet [OPTIONS] COMMAND [ARGS]...
-
-   Options:
-    -h, --help  Show this message and exit.
-
-   Commands:
-    browse  Open the issue tracker page for the given...
-    logout  Forget saved passwords for the web services.
-    pause   Pause work on the current issue.
-    resume  Resume work on the currently active issue.
-    setup   Run a wizard to create the user-level...
-    time    Start an Harvest timer for the given issue.
-    workon  Start work on a given issue.
 
 TODO
-----
+====
 
 A lot of commands are still missing, as for example:
 
