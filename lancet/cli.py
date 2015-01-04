@@ -93,10 +93,6 @@ def setup_helper(ctx, param, value):
               help='Print the shell integration code and exit.')
 @click.pass_context
 def main(ctx):
-    # TODO: Remove me once not needed anymore
-    import warnings
-    warnings.simplefilter('ignore', ImportWarning, 2150)
-
     # TODO: Enable this using a command line switch
     # import logging
     # logging.basicConfig(level=logging.DEBUG)
@@ -320,9 +316,7 @@ main.add_command(browse)
 @click.option('-f', '--force/--no-force', default=False)
 @click.pass_context
 def setup(ctx, force):
-    """
-    Run a wizard to create the user-level configuration file.
-    """
+    """Wizard to create the user-level configuration file."""
     if os.path.exists(USER_CONFIG) and not force:
         click.secho(
             'An existing configuration file was found at "{}".\n'
@@ -362,9 +356,7 @@ main.add_command(setup)
 @click.command()
 @click.pass_obj
 def logout(lancet):
-    """
-    Forget saved passwords for the web services.
-    """
+    """Forget saved passwords for the web services."""
     services = ['tracker', 'harvest']
 
     for service in services:

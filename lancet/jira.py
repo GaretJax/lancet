@@ -1,4 +1,4 @@
-from jira.client import JIRA as BaseJIRA
+from jira.client import JIRA as BaseJIRA  # NOQA
 from jira.exceptions import JIRAError
 
 from requests.cookies import RequestsCookieJar
