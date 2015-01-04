@@ -16,6 +16,9 @@ Unreleased
 * Fetch latest changes from origin before creating new working branches (#1).
 * Added an ``activate`` command to ``cd`` to the project directory and
   (optionally) activate a virtual environment.
+* Added the ``harvest-projects`` and ``harvest-tasks`` commands to list
+  projects/tasks IDs from Harvest.
+* Added an ``init`` command to create project-level configuration files (#2).
 
 0.3 - 2014-12-30
 ================
