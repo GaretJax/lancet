@@ -1,11 +1,12 @@
 import os
+import configparser
+
 import click
 import keyring
-import configparser
 import pygit2
 
 from . import __version__
-from .settings import load_config, USER_CONFIG
+from .settings import load_config, USER_CONFIG, LOCAL_CONFIG, PROJECT_CONFIG
 from .git import SlugBranchGetter
 from .base import Lancet, WarnIntegrationHelper, ShellIntegrationHelper
 from .utils import taskstatus
@@ -104,7 +105,12 @@ def main(ctx):
     except KeyError:
         integration_helper = WarnIntegrationHelper()
 
-    ctx.obj = Lancet(load_config(), integration_helper)
+    if os.path.exists(PROJECT_CONFIG):
+        config = load_config(PROJECT_CONFIG)
+    else:
+        config = load_config()
+
+    ctx.obj = Lancet(config, integration_helper)
     ctx.obj.call_on_close = ctx.call_on_close
 
     ctx.call_on_close(integration_helper.close)

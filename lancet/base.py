@@ -1,4 +1,5 @@
 import re
+import shlex
 import click
 
 import keyring
@@ -37,7 +38,7 @@ class MappedProjectID:
 
 
 class NullIntegrationHelper:
-    def register(self, cmd):
+    def register(self, *args, **kwargs):
         pass
 
     def close(self):
@@ -48,7 +49,7 @@ class WarnIntegrationHelper(NullIntegrationHelper):
     def __init__(self):
         self._shown = False
 
-    def register(self, cmd):
+    def register(self, *args, **kwargs):
         if not self._shown:
             self._shown = True
             click.secho('')
@@ -73,7 +74,8 @@ class ShellIntegrationHelper(NullIntegrationHelper):
         self.filename = filename
         self.fh = open(filename, 'w')
 
-    def register(self, cmd):
+    def register(self, *args, raw=False):
+        cmd = args[0] if raw else ' '.join(shlex.quote(a) for a in args)
         self.fh.write(cmd)
         self.fh.write('\n')
 
@@ -86,8 +88,8 @@ class Lancet:
         self.config = config
         self.integration_helper = integration_helper
 
-    def defer_to_shell(self, cmd):
-        return self.integration_helper.register(cmd)
+    def defer_to_shell(self, *args, **kwargs):
+        return self.integration_helper.register(*args, **kwargs)
 
     @cached_property
     def repo(self):
