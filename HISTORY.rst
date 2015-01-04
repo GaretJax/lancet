@@ -14,6 +14,8 @@ Unreleased
   to other directories or activating virtual environments.
 * Added a ``--version`` option to ``lancet``.
 * Fetch latest changes from origin before creating new working branches (#1).
+* Added an ``activate`` command to ``cd`` to the project directory and
+  (optionally) activate a virtual environment.
 
 0.3 - 2014-12-30
 ================
