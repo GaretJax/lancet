@@ -1,4 +1,3 @@
-import sys
 import os
 import click
 import keyring
@@ -24,7 +23,7 @@ def get_issue(lancet, key=None):
     return issue
 
 
-def get_transition(lancet, issue, to_status):
+def get_transition(ctx, lancet, issue, to_status):
     current_status = issue.fields.status.name
     if current_status != to_status:
         transitions = [t['id'] for t in lancet.tracker.transitions(issue)
@@ -35,14 +34,14 @@ def get_transition(lancet, issue, to_status):
                 .format(current_status, to_status),
                 fg='red', bold=True
             )
-            sys.exit(1)
+            ctx.exit(1)
         elif len(transitions) > 1:
             click.secho(
                 'Multiple transitions found from "{}" to "{}", aborting.'
                 .format(current_status, to_status),
                 fg='red', bold=True
             )
-            sys.exit(1)
+            ctx.exit(1)
         else:
             transition_id = transitions[0]
     else:
@@ -65,8 +64,7 @@ def assign_issue(lancet, issue, username, active_status=None):
 
 
 def set_issue_status(lancet, issue, to_status, transition):
-    with taskstatus(
-            'Setting issue status to "{}"'.format(to_status)) as ts:
+    with taskstatus('Setting issue status to "{}"'.format(to_status)) as ts:
         if transition is not None:
             lancet.tracker.transition_issue(issue, transition)
             ts.ok('Issue status set to "{}"'.format(to_status))
@@ -113,8 +111,8 @@ def main(ctx):
 @click.command()
 @click.option('--base', '-b', 'base_branch')
 @click.argument('issue')
-@click.pass_obj
-def workon(lancet, issue, base_branch):
+@click.pass_context
+def workon(ctx, issue, base_branch):
     """
     Start work on a given issue.
 
@@ -130,6 +128,8 @@ def workon(lancet, issue, base_branch):
     If the `default_project` directive is correctly configured, it is enough to
     give the issue ID (instead of the full project prefix + issue ID).
     """
+    lancet = ctx.obj
+
     username = lancet.config.get('tracker', 'username')
     if not base_branch:
         base_branch = lancet.config.get('repository', 'base_branch')
@@ -143,7 +143,7 @@ def workon(lancet, issue, base_branch):
     branch = branch_getter(lancet.repo, issue)
 
     # Make sure the issue is in a correct status
-    transition = get_transition(lancet, issue, active_status)
+    transition = get_transition(ctx, lancet, issue, active_status)
 
     # Make sure the issue is assigned to us
     assign_issue(lancet, issue, username, active_status)
@@ -182,21 +182,22 @@ main.add_command(time)
 
 
 @click.command()
-@click.pass_obj
-def pause(lancet):
+@click.pass_context
+def pause(ctx):
     """
     Pause work on the current issue.
 
     This command puts the issue in the configured paused status and stops the
     current Harvest timer.
     """
+    lancet = ctx.obj
     paused_status = lancet.config.get('tracker', 'paused_status')
 
     # Get the issue
     issue = get_issue(lancet)
 
     # Make sure the issue is in a correct status
-    transition = get_transition(lancet, issue, paused_status)
+    transition = get_transition(ctx, lancet, issue, paused_status)
 
     # Activate environment
     set_issue_status(lancet, issue, paused_status, transition)
@@ -209,13 +210,15 @@ main.add_command(pause)
 
 
 @click.command()
-@click.pass_obj
-def resume(lancet):
+@click.pass_context
+def resume(ctx):
     """
     Resume work on the currently active issue.
 
     The issue is retrieved from the currently active branch name.
     """
+    lancet = ctx.obj
+
     username = lancet.config.get('tracker', 'username')
     active_status = lancet.config.get('tracker', 'active_status')
 
@@ -223,7 +226,7 @@ def resume(lancet):
     issue = get_issue(lancet)
 
     # Make sure the issue is in a correct status
-    transition = get_transition(lancet, issue, active_status)
+    transition = get_transition(ctx, lancet, issue, active_status)
 
     # Make sure the issue is assigned to us
     assign_issue(lancet, issue, username, active_status)
@@ -254,8 +257,8 @@ main.add_command(browse)
 
 @click.command()
 @click.option('-f', '--force/--no-force', default=False)
-@click.pass_obj
-def setup(lancet, force):
+@click.pass_context
+def setup(ctx, force):
     """
     Run a wizard to create the user-level configuration file.
     """
@@ -269,7 +272,7 @@ def setup(lancet, force):
             'Please remove it before in order to run the setup wizard or use\n'
             'the --force flag to overwrite it.'
         )
-        sys.exit(1)
+        ctx.exit(1)
 
     tracker_url = click.prompt('URL of the issue tracker')
     tracker_user = click.prompt('Username for {}'.format(tracker_url))

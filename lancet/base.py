@@ -91,6 +91,7 @@ class Lancet:
 
     @cached_property
     def repo(self):
+        # Can be cleared like this: self.__class__.repo.fget.cache_clear()
         return Repository('./.git')
 
     def get_credentials(self, service, checker=None):
