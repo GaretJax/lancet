@@ -36,9 +36,58 @@ class MappedProjectID:
                          .format(issue.fields.issuetype))
 
 
+class NullIntegrationHelper:
+    def register(self, cmd):
+        pass
+
+    def close(self):
+        pass
+
+
+class WarnIntegrationHelper(NullIntegrationHelper):
+    def __init__(self):
+        self._shown = False
+
+    def register(self, cmd):
+        if not self._shown:
+            self._shown = True
+            click.secho('')
+            click.secho('  Lancet executable called directly', fg='yellow')
+            click.secho('  ---------------------------------', fg='yellow')
+            click.secho('')
+            click.secho('  Setup the shell integration to enjoy some of the')
+            click.secho('  super powers we built right into lancet.')
+            click.secho('')
+            click.secho('  This basically means to add the following snippet')
+            click.secho('  to your shell initialization file:')
+            click.secho('')
+            click.secho('    lancet --setup-helper | source /dev/stdin')
+            click.secho('')
+            click.secho('  See {} for addtional details.'.format(
+                click.style('https://lancet.rtd.org', fg='green')))
+            click.secho('')
+
+
+class ShellIntegrationHelper(NullIntegrationHelper):
+    def __init__(self, filename):
+        self.filename = filename
+        self.fh = open(filename, 'w')
+
+    def register(self, cmd):
+        self.fh.write(cmd)
+        self.fh.write('\n')
+
+    def close(self):
+        self.fh.close()
+
+
 class Lancet:
-    def __init__(self, config):
+    def __init__(self, config, integration_helper):
         self.config = config
+        self.integration_helper = integration_helper
+
+    def defer_to_shell(self, cmd):
+        return self.integration_helper.register(cmd)
 
     @cached_property
     def repo(self):

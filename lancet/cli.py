@@ -6,7 +6,7 @@ import configparser
 
 from .settings import load_config, USER_CONFIG
 from .git import SlugBranchGetter
-from .base import Lancet
+from .base import Lancet, WarnIntegrationHelper, ShellIntegrationHelper
 from .utils import taskstatus
 
 
@@ -74,7 +74,20 @@ def set_issue_status(lancet, issue, to_status, transition):
             ts.ok('Issue already "{}"'.format(to_status))
 
 
+def setup_helper(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    base = os.path.abspath(os.path.dirname(__file__))
+    helper = os.path.join(base, 'helper.sh')
+    with open(helper) as fh:
+        click.echo(fh.read())
+    ctx.exit()
+
+
 @click.group(context_settings=CONTEXT_SETTINGS)
+@click.option('--setup-helper', callback=setup_helper, is_flag=True,
+              expose_value=False, is_eager=True,
+              help='Print the shell integration code and exit.')
 @click.pass_context
 def main(ctx):
     # TODO: Remove me once not needed anymore
@@ -85,8 +98,16 @@ def main(ctx):
     # import logging
     # logging.basicConfig(level=logging.DEBUG)
 
-    ctx.obj = Lancet(load_config())
+    try:
+        integration_helper = ShellIntegrationHelper(
+            os.environ['LANCET_SHELL_HELPER'])
+    except KeyError:
+        integration_helper = WarnIntegrationHelper()
+
+    ctx.obj = Lancet(load_config(), integration_helper)
     ctx.obj.call_on_close = ctx.call_on_close
+
+    ctx.call_on_close(integration_helper.close)
 
 
 @click.command()
