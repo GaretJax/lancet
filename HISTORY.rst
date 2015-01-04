@@ -7,6 +7,7 @@ Unreleased
 
 * Added facilities to integrate with the current shell, for stuff like cd'ing
   to other directories or activating virtual environments.
+* Added a ``--version`` option to ``lancet``.
 
 0.3 - 2014-12-30
 ================

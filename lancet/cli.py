@@ -3,6 +3,7 @@ import click
 import keyring
 import configparser
 
+from . import __version__
 from .settings import load_config, USER_CONFIG
 from .git import SlugBranchGetter
 from .base import Lancet, WarnIntegrationHelper, ShellIntegrationHelper
@@ -83,6 +84,7 @@ def setup_helper(ctx, param, value):
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
+@click.version_option(version=__version__, message='%(prog)s %(version)s')
 @click.option('--setup-helper', callback=setup_helper, is_flag=True,
               expose_value=False, is_eager=True,
               help='Print the shell integration code and exit.')
