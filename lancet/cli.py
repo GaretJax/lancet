@@ -2,6 +2,7 @@ import os
 import click
 import keyring
 import configparser
+import pygit2
 
 from . import __version__
 from .settings import load_config, USER_CONFIG
@@ -55,8 +56,7 @@ def assign_issue(lancet, issue, username, active_status=None):
         assignee = issue.fields.assignee
         if not assignee or assignee.key != username:
             if issue.fields.status.name == active_status:
-                ts.fail('Issue already active and not assigned to you',
-                        abort=True)
+                ts.abort('Issue already active and not assigned to you')
             else:
                 lancet.tracker.assign_issue(issue, username)
                 ts.ok('Issue assigned to you')
@@ -135,8 +135,13 @@ def workon(ctx, issue, base_branch):
     username = lancet.config.get('tracker', 'username')
     if not base_branch:
         base_branch = lancet.config.get('repository', 'base_branch')
+    remote_name = lancet.config.get('repository', 'remote_name')
+    remote_username = lancet.config.get('repository', 'remote_username')
     active_status = lancet.config.get('tracker', 'active_status')
-    branch_getter = SlugBranchGetter(base_branch)
+
+    credentials = pygit2.KeypairFromAgent(remote_username)
+
+    branch_getter = SlugBranchGetter(base_branch, credentials, remote_name)
 
     # Get the issue
     issue = get_issue(lancet, issue)

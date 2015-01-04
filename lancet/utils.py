@@ -49,14 +49,14 @@ class PrintTaskStatus:
 
     def fail(self, msg, *args, **kwargs):
         self.clear_line()
-        abort = kwargs.pop('abort', False)
         msg = msg.format(*args, **kwargs)
-        if abort:
-            msg += ', aborting'
         click.echo(' {}  {}'.format(click.style('✗', fg='red'), msg))
         self._done = True
-        if abort:
-            sys.exit(1)
+
+    def abort(self, msg, *args, **kwargs):
+        msg += ', aborting'
+        self.fail(msg, *args, **kwargs)
+        sys.exit(1)
 
     @classmethod
     def suspend(cls):

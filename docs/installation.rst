@@ -22,7 +22,7 @@ The following carefully crafted software packages are needed to install
 ``lancet``:
 
 1. Python 3 (``brew install python3``)
-2. libgit2 (``brew install libgit2``)
+2. libgit2 with libssh2 support (``brew install libgit2 --with-libssh2``)
 3. pipsi (optional, see below)
 
 Required `Python packages`_ are automatically installed.
