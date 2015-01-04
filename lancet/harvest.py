@@ -72,6 +72,9 @@ class HarvestAPI:
     def whoami(self):
         return self._get('account/who_am_i')
 
+    def projects(self):
+        return self._get('daily')['projects']
+
     def daily(self):
         return self._get('daily')['day_entries']
 
