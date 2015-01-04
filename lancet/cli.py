@@ -1,4 +1,5 @@
 import os
+import glob
 import configparser
 
 import click
@@ -114,6 +115,52 @@ def main(ctx):
     ctx.obj.call_on_close = ctx.call_on_close
 
     ctx.call_on_close(integration_helper.close)
+
+
+@click.command()
+@click.option('-k', '--key', 'method', flag_value='key', default=True)
+@click.option('-d', '--dir', 'method', flag_value='dir')
+@click.argument('project')
+@click.pass_obj
+def activate(lancet, method, project):
+    workspace = os.path.expanduser(lancet.config.get('lancet', 'workspace'))
+    project_path = None
+
+    with taskstatus('Looking up project') as ts:
+        if method == 'key':
+            config_files = glob.glob(
+                os.path.join(workspace, '*', LOCAL_CONFIG))
+
+            for path in config_files:
+                config = load_config(path)
+                key = config.get('tracker', 'default_project', fallback=None)
+
+                if key.lower() == project.lower():
+                    project_path = os.path.dirname(path)
+        elif method == 'dir':
+            project_path = os.path.join(workspace, project)
+
+        if not project_path or not os.path.exists(project_path):
+            ts.abort('Project "{}" not found (using {}-based lookup)',
+                     project, method)
+
+    # Load the configuration
+    config = load_config(os.path.join(project_path, LOCAL_CONFIG))
+
+    # cd to the project directory
+    lancet.defer_to_shell('cd', project_path)
+
+    # Activate virtualenv
+    venv = config.get('lancet', 'virtualenv', fallback=None)
+    if venv:
+        venv_path = os.path.join(project_path, os.path.expanduser(venv))
+        activate_script = os.path.join(venv_path, 'bin', 'activate')
+        lancet.defer_to_shell('source', activate_script)
+    else:
+        if 'VIRTUAL_ENV' in os.environ:
+            lancet.defer_to_shell('deactivate')
+
+main.add_command(activate)
 
 
 @click.command()
