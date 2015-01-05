@@ -60,7 +60,6 @@ TODO
 
 A lot of commands are still missing, as for example:
 
-* ``init``: to setup the project-level configuration for any given project.
 * ``pr``: to open a new pull-request and update the tracker accordingly.
 * ``review``: to streamline the whole reviewing process (pulling, linting,\
   diffs,...).
