@@ -46,7 +46,7 @@ Once installed, set up the initial configuration by running::
 
    lancet setup
 
-TODO: For each not-yet-configured project, you can then run::
+For each not-yet-configured project, you can then run::
 
    cd path/to/project
    lancet init
@@ -60,7 +60,6 @@ TODO
 
 A lot of commands are still missing, as for example:
 
-* ``init``: to setup the project-level configuration for any given project.
 * ``pr``: to open a new pull-request and update the tracker accordingly.
 * ``review``: to streamline the whole reviewing process (pulling, linting,\
   diffs,...).
