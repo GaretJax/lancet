@@ -385,11 +385,8 @@ def pull_request(ctx, base_branch, open_pr):
         p = giturlparse(remote.url)
         gh_repo = lancet.github.repository(p.owner, p.repo)
 
-        description = (
-            issue.fields.description.replace('\r\n', '\n').replace('\r', '\n'))
-
-        message = click.edit("{} – {}\n\n{}\n\n{}".format(
-            issue.key, issue.fields.summary, description, issue.permalink()))
+        message = click.edit("{} – {}\n\n{}".format(
+            issue.key, issue.fields.summary, issue.permalink()))
 
         if not message:
             ts.abort('You didn\'t provide a title for the pull request')
