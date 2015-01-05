@@ -8,5 +8,5 @@ From http://en.wikipedia.org/wiki/Scalpel:
 
 __author__ = 'Jonathan Stoppani'
 __email__ = 'jonathan@stoppani.name'
-__version__ = '0.4'
+__version__ = '0.4.1'
 __url__ = 'https://github.com/GaretJax/lancet'
