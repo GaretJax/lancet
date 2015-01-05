@@ -6,6 +6,7 @@ Unreleased
 ==========
 
 * Added a ``pr`` command to automate pull requests creation.
+* The ``logout`` command can now logout from a single service.
 
 0.4.2 - 2015-01-05
 ==================

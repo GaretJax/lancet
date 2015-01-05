@@ -521,10 +521,14 @@ main.add_command(init)
 
 
 @click.command()
+@click.argument('service', required=False)
 @click.pass_obj
-def logout(lancet):
+def logout(lancet, service):
     """Forget saved passwords for the web services."""
-    services = ['tracker', 'harvest']
+    if service:
+        services = [service]
+    else:
+        services = ['tracker', 'harvest']
 
     for service in services:
         url = lancet.config.get(service, 'url')
