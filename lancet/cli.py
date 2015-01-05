@@ -135,6 +135,7 @@ def main(ctx):
 @click.argument('project')
 @click.pass_obj
 def activate(lancet, method, project):
+    """Switch to this project."""
     workspace = os.path.expanduser(lancet.config.get('lancet', 'workspace'))
     project_path = None
 
