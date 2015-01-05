@@ -2,25 +2,27 @@
 History
 =======
 
-Unreleased
-==========
+0.5.0 – 2015-01-05
+==================
 
+* Include all resources in the distribution.
+* Cleanup docker-related leftovers.
 * Added a ``pr`` command to automate pull requests creation.
 * The ``logout`` command can now logout from a single service.
 
-0.4.2 - 2015-01-05
+0.4.2 – 2015-01-05
 ==================
 
 * Fix ``python-slugify`` requirement.
 
 
-0.4.1 - 2015-01-05
+0.4.1 – 2015-01-05
 ==================
 
 * Update requirements.
 
 
-0.4 - 2015-01-05
+0.4 – 2015-01-05
 ================
 
 .. warning::
@@ -39,7 +41,7 @@ Unreleased
 * Added an ``init`` command to create project-level configuration files (#2).
 
 
-0.3 - 2014-12-30
+0.3 – 2014-12-30
 ================
 
 * Handle unassigned issues (#5).
