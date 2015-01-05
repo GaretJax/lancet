@@ -7,6 +7,7 @@ Creating a release
 ==================
 
 * Checkout the ``master`` branch.
+* Make sure ``check-manifest`` is happy.
 * Pull the latest changes from ``origin``.
 * Increment the version number.
 * Set the correct title for the release in ``HISTORY.rst``.
