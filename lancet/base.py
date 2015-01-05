@@ -4,12 +4,12 @@ import click
 
 import keyring
 import github3
-from pygit2 import Repository
 
 from . import __url__
 from .jira import JIRA, JIRAError
 from .harvest import HarvestPlatform, HarvestAPI, HarvestError
 from .utils import cached_property, taskstatus
+from .git import Repository
 
 
 class MappedProjectID:

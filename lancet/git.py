@@ -69,10 +69,8 @@ class SlugBranchGetter(object):
         if not branch:
             # No local branches found, fetch remote
             with taskstatus('Fetching from "{}"', self.remote_name) as ts:
-                for remote in repo.remotes:
-                    if remote.name == self.remote_name:
-                        break
-                else:
+                remote = repo.lookup_remote(self.remote_name)
+                if not remote:
                     ts.abort('Remote "{}" not found', self.remote_name)
 
                 remote.credentials = self.remote_credentials
@@ -98,3 +96,10 @@ class SlugBranchGetter(object):
                     ts.ok('Created new working branch')
 
         return branch
+
+
+class Repository(pygit2.Repository):
+    def lookup_remote(self, name):
+        for remote in self.remotes:
+            if remote.name == name:
+                return remote

@@ -88,13 +88,39 @@ def setup_helper(ctx, param, value):
     ctx.exit()
 
 
+def get_credentials_for_remote(remote):
+    if not remote:
+        return
+    p = giturlparse(remote.url)
+    remote_username = p._user
+
+    if p.protocol == 'ssh':
+        credentials = pygit2.KeypairFromAgent(remote_username)
+    elif p.protocol == 'https':
+        # TODO: What if this fails? (platform, pwd not stored,...)
+        try:
+            import subprocess
+            out = subprocess.check_output([
+                'security', 'find-internet-password',
+                '-r', 'htps',
+                '-s', 'github.com',
+            ])
+            match = re.search(rb'"acct"<blob>="([0-9a-f]+)"', out)
+            token = match.group(1)
+        except:
+            raise NotImplementedError('No authentication support.')
+        credentials = pygit2.UserPass('x-oauth-basic', token)
+
+    return credentials
+
+
 def get_branch(lancet, issue, base_branch=None, create=True):
     if not base_branch:
         base_branch = lancet.config.get('repository', 'base_branch')
     remote_name = lancet.config.get('repository', 'remote_name')
-    remote_username = lancet.config.get('repository', 'remote_username')
 
-    credentials = pygit2.KeypairFromAgent(remote_username)
+    remote = lancet.repo.lookup_remote(remote_name)
+    credentials = get_credentials_for_remote(remote)
 
     branch_getter = SlugBranchGetter(base_branch, credentials, remote_name)
 
@@ -200,6 +226,8 @@ def workon(ctx, issue, base_branch):
 
     username = lancet.config.get('tracker', 'username')
     active_status = lancet.config.get('tracker', 'active_status')
+    if not base_branch:
+        base_branch = lancet.config.get('repository', 'base_branch')
 
     # Get the issue
     issue = get_issue(lancet, issue)
@@ -317,7 +345,7 @@ def pull_request(ctx, base_branch, open_pr):
     username = lancet.config.get('tracker', 'username')
     review_status = lancet.config.get('tracker', 'review_status')
     remote_name = lancet.config.get('repository', 'remote_name')
-    remote_username = lancet.config.get('repository', 'remote_username')
+
     if not base_branch:
         base_branch = lancet.config.get('repository', 'base_branch')
 
@@ -343,13 +371,11 @@ def pull_request(ctx, base_branch, open_pr):
 
     # Push to remote
     with taskstatus('Pushing to "{}"', remote_name) as ts:
-        for remote in lancet.repo.remotes:
-            if remote.name == remote_name:
-                break
-        else:
+        remote = lancet.repo.lookup_remote(remote_name)
+        if not remote:
             ts.abort('Remote "{}" not found', remote_name)
 
-        remote.credentials = pygit2.KeypairFromAgent(remote_username)
+        remote.credentials = get_credentials_for_remote(remote)
         remote.push(branch.name)
 
         ts.ok('Pushed latest changes to "{}"', remote_name)
