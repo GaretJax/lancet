@@ -46,7 +46,7 @@ Once installed, set up the initial configuration by running::
 
    lancet setup
 
-TODO: For each not-yet-configured project, you can then run::
+For each not-yet-configured project, you can then run::
 
    cd path/to/project
    lancet init
