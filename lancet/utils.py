@@ -39,7 +39,10 @@ class PrintTaskStatus:
     def __exit__(self, type, value, tb):
         PrintTaskStatus._active_tasks.pop()
         if not self._done:
-            self.clear_line()
+            if type:
+                self.fail('{}: {}', type.__name__, value)
+            else:
+                self.clear_line()
 
     def ok(self, msg, *args, **kwargs):
         self.clear_line()

@@ -63,7 +63,7 @@ class SlugBranchGetter(object):
                 branch = repo.lookup_branch(full_name)
             return branch
 
-    def __call__(self, repo, issue):
+    def __call__(self, repo, issue, create=True):
         branch = self.get_branch(repo, issue)
 
         if not branch:
@@ -87,7 +87,7 @@ class SlugBranchGetter(object):
                 if branch:
                     ts.ok('Created new working branch based on existing '
                           'remote branch')
-                else:
+                elif create:
                     _, full_name = self.get_branch_name(self.prefix, issue)
 
                     base = self.get_base_branch(repo)

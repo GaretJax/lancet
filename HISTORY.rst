@@ -2,6 +2,11 @@
 History
 =======
 
+Unreleased
+==========
+
+* Added a ``pr`` command to automate pull requests creation.
+
 0.4.2 - 2015-01-05
 ==================
 

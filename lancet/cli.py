@@ -4,8 +4,10 @@ import glob
 import configparser
 
 import click
+import github3
 import keyring
 import pygit2
+from giturlparse import parse as giturlparse
 
 from . import __version__
 from .settings import load_config, USER_CONFIG, LOCAL_CONFIG, PROJECT_CONFIG
@@ -84,6 +86,19 @@ def setup_helper(ctx, param, value):
     with open(helper) as fh:
         click.echo(fh.read())
     ctx.exit()
+
+
+def get_branch(lancet, issue, base_branch=None, create=True):
+    if not base_branch:
+        base_branch = lancet.config.get('repository', 'base_branch')
+    remote_name = lancet.config.get('repository', 'remote_name')
+    remote_username = lancet.config.get('repository', 'remote_username')
+
+    credentials = pygit2.KeypairFromAgent(remote_username)
+
+    branch_getter = SlugBranchGetter(base_branch, credentials, remote_name)
+
+    return branch_getter(lancet.repo, issue, create=create)
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -183,21 +198,13 @@ def workon(ctx, issue, base_branch):
     lancet = ctx.obj
 
     username = lancet.config.get('tracker', 'username')
-    if not base_branch:
-        base_branch = lancet.config.get('repository', 'base_branch')
-    remote_name = lancet.config.get('repository', 'remote_name')
-    remote_username = lancet.config.get('repository', 'remote_username')
     active_status = lancet.config.get('tracker', 'active_status')
-
-    credentials = pygit2.KeypairFromAgent(remote_username)
-
-    branch_getter = SlugBranchGetter(base_branch, credentials, remote_name)
 
     # Get the issue
     issue = get_issue(lancet, issue)
 
     # Get the working branch
-    branch = branch_getter(lancet.repo, issue)
+    branch = get_branch(lancet, issue, base_branch)
 
     # Make sure the issue is in a correct status
     transition = get_transition(ctx, lancet, issue, active_status)
@@ -296,6 +303,108 @@ def resume(ctx):
         ts.ok('Resumed harvest timer')
 
 main.add_command(resume)
+
+
+@click.command(name='pr')
+@click.option('--base', '-b', 'base_branch')
+@click.option('-o', '--open-pr/--no-open-pr', default=False)
+@click.pass_context
+def pull_request(ctx, base_branch, open_pr):
+    """Create a new pull request for this issue."""
+    lancet = ctx.obj
+
+    username = lancet.config.get('tracker', 'username')
+    review_status = lancet.config.get('tracker', 'review_status')
+    remote_name = lancet.config.get('repository', 'remote_name')
+    remote_username = lancet.config.get('repository', 'remote_username')
+    if not base_branch:
+        base_branch = lancet.config.get('repository', 'base_branch')
+
+    # Get the issue
+    issue = get_issue(lancet)
+
+    transition = get_transition(ctx, lancet, issue, review_status)
+
+    # Get the working branch
+    branch = get_branch(lancet, issue, create=False)
+
+    with taskstatus('Checking pre-requisites') as ts:
+        if not branch:
+            ts.abort('No working branch found')
+
+        assignee = issue.fields.assignee
+        if not assignee or assignee.key != username:
+            ts.abort('Issue currently not assigned to you')
+
+        # TODO: Check mergeability
+
+    # TODO: Check remote status (PR does not already exist)
+
+    # Push to remote
+    with taskstatus('Pushing to "{}"', remote_name) as ts:
+        for remote in lancet.repo.remotes:
+            if remote.name == remote_name:
+                break
+        else:
+            ts.abort('Remote "{}" not found', remote_name)
+
+        remote.credentials = pygit2.KeypairFromAgent(remote_username)
+        remote.push(branch.name)
+
+        ts.ok('Pushed latest changes to "{}"', remote_name)
+
+    # Create pull request
+    with taskstatus('Creating pull request') as ts:
+        p = giturlparse(remote.url)
+        gh_repo = lancet.github.repository(p.owner, p.repo)
+
+        description = (
+            issue.fields.description.replace('\r\n', '\n').replace('\r', '\n'))
+
+        message = click.edit("{} – {}\n\n{}\n\n{}".format(
+            issue.key, issue.fields.summary, description, issue.permalink()))
+
+        if not message:
+            ts.abort('You didn\'t provide a title for the pull request')
+
+        title, body = message.split('\n', 1)
+        title = title.strip()
+
+        if not title:
+            ts.abort('You didn\'t provide a title for the pull request')
+
+        try:
+            pr = gh_repo.create_pull(title, base_branch, branch.branch_name,
+                                     body.strip('\n'))
+        except github3.GitHubError as e:
+            if len(e.errors) == 1:
+                error = e.errors[0]
+                if 'pull request already exists' in error['message']:
+                    ts.ok('Pull request does already exist')
+                else:
+                    ts.abort('Could not create pull request ({})',
+                             error['message'])
+            else:
+                raise
+        else:
+            ts.ok('Pull request created at {}', pr.html_url)
+
+    # Update issue
+    set_issue_status(lancet, issue, review_status, transition)
+
+    # TODO: Post to activity stream on JIRA
+    # TODO: Post to HipChat?
+
+    # Stop harvest timer
+    with taskstatus('Pausing harvest timer') as ts:
+        lancet.timer.pause()
+        ts.ok('Harvest timer paused')
+
+    # Open the pull request page in the browser if requested
+    if open_pr:
+        click.launch(pr.html_url)
+
+main.add_command(pull_request)
 
 
 @click.command()
@@ -486,12 +595,6 @@ main.add_command(harvest_tasks)
 
 
 # TODO:
-# * init (project)
-# * pullrequest
-#     push
-#     pull-request
-#     update JIRA issue (transition/assign/comment)
-#     stop timer
 # * review
 #     pull
 #     ci-status

@@ -3,8 +3,10 @@ import shlex
 import click
 
 import keyring
+import github3
 from pygit2 import Repository
 
+from . import __url__
 from .jira import JIRA, JIRAError
 from .harvest import HarvestPlatform, HarvestAPI, HarvestError
 from .utils import cached_property, taskstatus
@@ -91,11 +93,6 @@ class Lancet:
     def defer_to_shell(self, *args, **kwargs):
         return self.integration_helper.register(*args, **kwargs)
 
-    @cached_property
-    def repo(self):
-        # Can be cleared like this: self.__class__.repo.fget.cache_clear()
-        return Repository('./.git')
-
     def get_credentials(self, service, checker=None):
         url = self.config.get(service, 'url')
         username = self.config.get(service, 'username')
@@ -144,6 +141,60 @@ class Lancet:
             if project_key:
                 key = '{}-{}'.format(project_key, key)
         return self.tracker.issue(key)
+
+    @cached_property
+    def repo(self):
+        # Can be cleared like this: self.__class__.repo.fget.cache_clear()
+        return Repository('./.git')
+
+    @cached_property
+    def github(self):
+        url = self.config.get('github', 'url')
+        # TODO: This is only used to create the key, but we shall add support
+        # github enterprise as well
+        key = 'lancet+{}'.format(url)
+        username = self.config.get('github', 'username')
+        token = keyring.get_password(key, username)
+
+        if not token:
+            def two_factor_callback():
+                with taskstatus.suspend():
+                    return click.prompt('2-factor auth code')
+
+            with taskstatus.suspend():
+                while True:
+                    click.echo(
+                        'Please provide your authentication information for {}'
+                        .format(url)
+                    )
+                    if not username:
+                        username = click.prompt('Username')
+                    else:
+                        click.echo('Username: {}'.format(username))
+                    password = click.prompt('Password', hide_input=True)
+
+                    with taskstatus('Getting authorization token') as ts:
+                        scopes = ['user', 'repo']
+                        try:
+                            auth = github3.authorize(
+                                username, password, scopes, 'Lancet', __url__,
+                                two_factor_callback=two_factor_callback
+                            )
+                        except github3.GitHubError as e:
+                            ts.fail('Login failed ({})', e)
+                            username, password = None, None
+                            continue
+                        else:
+                            ts.ok('New token correctly generated')
+                            break
+
+                token = '{}:{}'.format(auth.id, auth.token)
+                keyring.set_password(key, username, token)
+
+        id, token = token.split(':', 1)
+        gh = github3.login(token=token)
+        self.call_on_close(gh._session.close)
+        return gh
 
     @cached_property
     def tracker(self):
