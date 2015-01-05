@@ -2,8 +2,9 @@
 History
 =======
 
-Unreleased
-==========
+
+0.4 - 2015-01-05
+================
 
 .. warning::
 
@@ -19,6 +20,7 @@ Unreleased
 * Added the ``harvest-projects`` and ``harvest-tasks`` commands to list
   projects/tasks IDs from Harvest.
 * Added an ``init`` command to create project-level configuration files (#2).
+
 
 0.3 - 2014-12-30
 ================
