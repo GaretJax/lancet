@@ -2,6 +2,12 @@
 History
 =======
 
+0.5.1 - 2015-01-13
+==================
+
+* Coerce config values to int when calling `init`.
+
+
 0.5.0 – 2015-01-05
 ==================
 
