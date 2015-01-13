@@ -60,7 +60,6 @@ TODO
 
 A lot of commands are still missing, as for example:
 
-* ``pr``: to open a new pull-request and update the tracker accordingly.
 * ``review``: to streamline the whole reviewing process (pulling, linting,\
   diffs,...).
 * ``merge``: to help in getting a more strict merge process in place (and

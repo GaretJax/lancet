@@ -529,8 +529,8 @@ def init(ctx, force):
     config.set('tracker', 'default_project', project_key)
 
     config.add_section('harvest')
-    config.set('harvest', 'project_id', project_id)
-    config.set('harvest', 'task_id', task_id)
+    config.set('harvest', 'project_id', str(project_id))
+    config.set('harvest', 'task_id', str(task_id))
 
     config.add_section('repository')
     config.set('repository', 'base_branch', base_branch)
