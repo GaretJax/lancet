@@ -40,6 +40,7 @@ class HarvestAPI:
     def __init__(self, server, basic_auth):
         self.server = server
         self.auth = basic_auth
+        self._projects = None
         self._session = requests.Session()
         self._session.auth = basic_auth
         self._session.headers = {
@@ -73,7 +74,9 @@ class HarvestAPI:
         return self._get('account/who_am_i')
 
     def projects(self):
-        return self._get('daily')['projects']
+        if not self._projects:
+            self._projects = self._get('daily')['projects']
+        return self._projects
 
     def tasks(self, project_id):
         project_id = int(project_id)
@@ -82,7 +85,9 @@ class HarvestAPI:
                 return project['tasks']
 
     def daily(self):
-        return self._get('daily')['day_entries']
+        daily = self._get('daily')
+        self._projects = daily['projects']
+        return daily['day_entries']
 
     def close(self):
         self._session.close()
