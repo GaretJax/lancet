@@ -7,6 +7,8 @@ Unreleased
 
 * Added support for pluggable Harvest task/project mapper.
 * Added support for epics based time tracking.
+* Added support for pluggable branch namign backends.
+* Added support for different branch prefixes based on issue type.
 
 
 0.5.1 - 2015-01-13

@@ -11,7 +11,7 @@ from giturlparse import parse as giturlparse
 
 from . import __version__
 from .settings import load_config, USER_CONFIG, LOCAL_CONFIG, PROJECT_CONFIG
-from .git import SlugBranchGetter
+from .git import BranchGetter
 from .base import Lancet, WarnIntegrationHelper, ShellIntegrationHelper
 from .utils import taskstatus
 
@@ -122,7 +122,10 @@ def get_branch(lancet, issue, base_branch=None, create=True):
     remote = lancet.repo.lookup_remote(remote_name)
     credentials = get_credentials_for_remote(remote)
 
-    branch_getter = SlugBranchGetter(base_branch, credentials, remote_name)
+    name_getter = lancet.get_instance_from_config(
+        'repository', 'branch_name_getter')
+    branch_getter = BranchGetter(base_branch, credentials, name_getter,
+                                 remote_name)
 
     return branch_getter(lancet.repo, issue, create=create)
 

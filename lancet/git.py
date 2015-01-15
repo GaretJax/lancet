@@ -7,13 +7,64 @@ from slugify import slugify
 from .utils import taskstatus
 
 
-class SlugBranchGetter(object):
-    prefix = 'feature/'
+class PrefixedIDBranchName:
+    def get_prefix(issue):
+        raise NotImplementedError()
 
-    def __init__(self, base_branch, remote_credentials, remote_name='origin'):
+    def __call__(self, issue):
+        discriminator = '{}{}_'.format(self.get_prefix(issue), issue.key)
+        slug = slugify(issue.fields.summary[:30])
+        full_name = '{}{}'.format(discriminator, slug)
+        return discriminator, full_name
+
+
+class FixedPrefixIDBranchName(PrefixedIDBranchName):
+    def __init__(self, prefix):
+        self._prefix = prefix
+
+    def get_prefix(self, issue):
+        return self._prefix
+
+
+class TaskTypePrefixIDBranchName(PrefixedIDBranchName):
+    def __init__(self, prefixes):
+        self._prefixes = prefixes
+
+    def get_prefix(self, issue):
+        try:
+            return self._prefixes[str(issue.fields.issuetype)]
+        except KeyError:
+            pass
+
+        try:
+            return self._prefixes[None]
+        except KeyError:
+            pass
+
+        raise ValueError('Could not find a prefix for issue type "{}"'
+                         .format(issue.fields.issuetype))
+
+    @classmethod
+    def fromstring(cls, string):
+        prefixes = string.split(',')
+        prefixes = (p.split(':') for p in prefixes)
+        prefixes = ((None, p[0]) if len(p) == 1 else p for p in prefixes)
+        prefixes = dict(prefixes)
+        return cls(prefixes)
+
+
+def prefixed_id_branch_name(lancet):
+    prefix = lancet.config.get('repository', 'branch_name_prefix')
+    return TaskTypePrefixIDBranchName.fromstring(prefix)
+
+
+class BranchGetter:
+    def __init__(self, base_branch, remote_credentials, branch_name_getter,
+                 remote_name='origin'):
         self.base_branch = base_branch
         self.remote_name = remote_name
         self.remote_credentials = remote_credentials
+        self.get_branch_name = branch_name_getter
 
     def get_base_branch(self, repo):
         return repo.lookup_branch(
@@ -21,21 +72,14 @@ class SlugBranchGetter(object):
             pygit2.GIT_BRANCH_REMOTE
         )
 
-    def get_branch_name(self, prefix, issue):
-        discriminator = '{}{}_'.format(prefix, issue.key)
-        slug = slugify(issue.fields.summary[:30])
-        full_name = '{}{}_{}'.format(self.prefix, issue.key, slug)
-        return discriminator, full_name
-
     def get_branch(self, repo, issue, from_remote=False):
+        discriminator, full_name = self.get_branch_name(issue)
+
         if from_remote:
             branch_type = pygit2.GIT_BRANCH_REMOTE
-            prefix = '{}/{}'.format(self.remote_name, self.prefix)
+            discriminator = '{}/{}'.format(self.remote_name, discriminator)
         else:
             branch_type = pygit2.GIT_BRANCH_LOCAL
-            prefix = self.prefix
-
-        discriminator, full_name = self.get_branch_name(prefix, issue)
 
         branches = [b for b in repo.listall_branches(branch_type)
                     if b.startswith(discriminator)]
@@ -86,7 +130,7 @@ class SlugBranchGetter(object):
                     ts.ok('Created new working branch based on existing '
                           'remote branch')
                 elif create:
-                    _, full_name = self.get_branch_name(self.prefix, issue)
+                    _, full_name = self.get_branch_name(issue)
 
                     base = self.get_base_branch(repo)
                     if not base:
