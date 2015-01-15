@@ -219,6 +219,35 @@ def fixed_task_id_getter(lancet):
     return lambda _1, _2, _3: task_id
 
 
+class EpicTaskMapper:
+    def __init__(self, epic_link_field, epic_name_field):
+        self.epic_link_field = epic_link_field
+        self.epic_name_field = epic_name_field
+
+    def get_epic(self, issue):
+        from jira.resources import Issue
+        epic = Issue(issue._options, issue._session)
+        epic.find(getattr(issue.fields, self.epic_link_field))
+        return epic
+
+    def __call__(self, timer, project_id, issue):
+        epic = self.get_epic(issue)
+        epic_name = getattr(epic.fields, self.epic_name_field)
+
+        for t in timer.tasks(project_id):
+            if t['name'] == epic_name:
+                return t['id']
+
+        raise ValueError(
+            'Could not find a task with the name "{}" in the Harvest project '
+            'with ID {}'.format(self._tracker_field_name, project_id))
+
+
+def epic_task_id_getter(lancet):
+    return EpicTaskMapper(lancet.config.get('harvest', 'epic_link_field'),
+                          lancet.config.get('harvest', 'epic_name_field'))
+
+
 def credentials_checker(url, username, password):
     """Check the provided credentials using the Harvest API."""
     api = HarvestAPI(url, (username, password))

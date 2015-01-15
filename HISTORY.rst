@@ -5,7 +5,8 @@ History
 Unreleased
 ==========
 
-* Add support for pluggable Harvest task/project mapper.
+* Added support for pluggable Harvest task/project mapper.
+* Added support for epics based time tracking.
 
 
 0.5.1 - 2015-01-13
