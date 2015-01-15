@@ -187,6 +187,8 @@ class MappedProjectID:
 
     @classmethod
     def fromstring(cls, string):
+        if not string:
+            return cls({})
         project_ids = string.split(',')
         project_ids = (p.split(':') for p in project_ids)
         project_ids = ((None, p[0]) if len(p) == 1 else p for p in project_ids)
