@@ -2,6 +2,12 @@
 History
 =======
 
+Unreleased
+==========
+
+* Add support for pluggable Harvest task/project mapper.
+
+
 0.5.1 - 2015-01-13
 ==================
 

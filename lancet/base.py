@@ -1,42 +1,15 @@
 import re
 import shlex
 import click
+import importlib
 
 import keyring
 import github3
 
-from . import __url__
+from . import __url__, harvest
 from .jira import JIRA, JIRAError
-from .harvest import HarvestPlatform, HarvestAPI, HarvestError
 from .utils import cached_property, taskstatus
 from .git import Repository
-
-
-class MappedProjectID:
-    def __init__(self, project_ids):
-        self._project_ids = project_ids
-
-    @classmethod
-    def fromstring(cls, string):
-        project_ids = string.split(',')
-        project_ids = (p.split(':') for p in project_ids)
-        project_ids = ((None, p) if len(p) == 1 else p for p in project_ids)
-        project_ids = dict(project_ids)
-        return cls(project_ids)
-
-    def __call__(self, issue):
-        try:
-            return self._project_ids[str(issue.fields.issuetype)]
-        except KeyError:
-            pass
-
-        try:
-            return self._project_ids[None]
-        except KeyError:
-            pass
-
-        raise ValueError('Could not find a project ID for issue type "{}"'
-                         .format(issue.fields.issuetype))
 
 
 class NullIntegrationHelper:
@@ -89,6 +62,12 @@ class Lancet:
     def __init__(self, config, integration_helper):
         self.config = config
         self.integration_helper = integration_helper
+
+    def get_instance_from_config(self, section, key):
+        import_path = self.config.get(section, key)
+        module_path, callable_name = import_path.rsplit('.', 1)
+        factory = getattr(importlib.import_module(module_path), callable_name)
+        return factory(self)
 
     def defer_to_shell(self, *args, **kwargs):
         return self.integration_helper.register(*args, **kwargs)
@@ -207,28 +186,11 @@ class Lancet:
                 return True
 
         url, username, password = self.get_credentials('tracker', checker)
-        tracker = JIRA(server=url, basic_auth=(username, password))
+        tracker = JIRA(options={'server': url},
+                       basic_auth=(username, password))
         self.call_on_close(tracker.close)
         return tracker
 
     @cached_property
     def timer(self):
-        def checker(url, username, password):
-            api = HarvestAPI(url, (username, password))
-            try:
-                api.whoami()
-            except HarvestError:
-                return False
-            else:
-                return True
-
-        url, username, password = self.get_credentials('harvest', checker)
-        task_id = self.config.get('harvest', 'task_id')
-        project_id_getter = MappedProjectID.fromstring(
-            self.config.get('harvest', 'project_id'))
-        timer = HarvestPlatform(server=url,
-                                basic_auth=(username, password),
-                                project_id_getter=project_id_getter,
-                                task_id=task_id)
-        self.call_on_close(timer.close)
-        return timer
+        return harvest.client_factory(self)

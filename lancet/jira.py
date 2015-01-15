@@ -1,4 +1,4 @@
-from jira.client import JIRA as BaseJIRA  # NOQA
+from jira.client import GreenHopper  # NOQA
 from jira.exceptions import JIRAError
 
 from requests.cookies import RequestsCookieJar
@@ -17,7 +17,7 @@ class ObliviousCookieJar(RequestsCookieJar):
         return ObliviousCookieJar()
 
 
-class JIRA(BaseJIRA):
+class JIRA(GreenHopper):
     def _create_http_basic_session(self, username, password):
         super(JIRA, self)._create_http_basic_session(username, password)
 

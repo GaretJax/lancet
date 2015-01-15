@@ -75,6 +75,12 @@ class HarvestAPI:
     def projects(self):
         return self._get('daily')['projects']
 
+    def tasks(self, project_id):
+        project_id = int(project_id)
+        for project in self.projects():
+            if project['id'] == int(project_id):
+                return project['tasks']
+
     def daily(self):
         return self._get('daily')['day_entries']
 
@@ -85,10 +91,10 @@ class HarvestAPI:
 class HarvestPlatform(HarvestAPI):
     platform_url = 'https://platform.harvestapp.com'
 
-    def __init__(self, server, basic_auth, project_id_getter, task_id):
+    def __init__(self, server, basic_auth, project_id_getter, task_id_getter):
         self._web_session = requests.Session()
-        self.task_id = task_id
         self.get_project_id = project_id_getter
+        self.get_task_id = task_id_getter
         self._csrf_token = None
         super().__init__(server, basic_auth)
 
@@ -132,6 +138,8 @@ class HarvestPlatform(HarvestAPI):
                 return
 
         name = '{} - {}'.format(issue.key, issue.fields.summary)
+        project_id = self.get_project_id(self, issue)
+        task_id = self.get_task_id(self, project_id, issue)
 
         qs = urlencode({
             'app_name': 'JIRA',
@@ -145,8 +153,8 @@ class HarvestPlatform(HarvestAPI):
         })
         data = {
             'utf8': '✓',
-            'project_id': self.get_project_id(issue),
-            'task_id': self.task_id,
+            'project_id': project_id,
+            'task_id': task_id,
             'notes': name,
             'hours': '',
             'button': '',
@@ -166,3 +174,72 @@ class HarvestPlatform(HarvestAPI):
     def close(self):
         self._web_session.close()
         super(HarvestPlatform, self).close()
+
+
+class MappedProjectID:
+    def __init__(self, project_ids):
+        self._project_ids = project_ids
+
+    @classmethod
+    def fromstring(cls, string):
+        project_ids = string.split(',')
+        project_ids = (p.split(':') for p in project_ids)
+        project_ids = ((None, p[0]) if len(p) == 1 else p for p in project_ids)
+        project_ids = ((k, int(v)) for k, v in project_ids)
+        project_ids = dict(project_ids)
+        return cls(project_ids)
+
+    def __call__(self, timer, issue):
+        try:
+            return self._project_ids[str(issue.fields.issuetype)]
+        except KeyError:
+            pass
+
+        try:
+            return self._project_ids[None]
+        except KeyError:
+            pass
+
+        raise ValueError('Could not find a project ID for issue type "{}"'
+                         .format(issue.fields.issuetype))
+
+
+def mapped_project_id_getter(lancet):
+    return MappedProjectID.fromstring(
+        lancet.config.get('harvest', 'project_id'))
+
+
+def fixed_task_id_getter(lancet):
+    task_id = int(lancet.config.get('harvest', 'task_id'))
+    return lambda _1, _2, _3: task_id
+
+
+def credentials_checker(url, username, password):
+    """Check the provided credentials using the Harvest API."""
+    api = HarvestAPI(url, (username, password))
+    try:
+        api.whoami()
+    except HarvestError:
+        return False
+    else:
+        return True
+
+
+def client_factory(lancet):
+    """Construct a new Harvest client."""
+    url, username, password = lancet.get_credentials(
+        'harvest', credentials_checker)
+
+    project_id_getter = lancet.get_instance_from_config(
+        'harvest', 'project_id_getter')
+    task_id_getter = lancet.get_instance_from_config(
+        'harvest', 'task_id_getter')
+
+    client = HarvestPlatform(
+        server=url,
+        basic_auth=(username, password),
+        project_id_getter=project_id_getter,
+        task_id_getter=task_id_getter
+    )
+    lancet.call_on_close(client.close)
+    return client
