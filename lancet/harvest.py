@@ -240,7 +240,6 @@ class EpicTaskMapper:
         try:
             epic = self.get_epic(issue)
         except:
-            import pdb; pdb.set_trace()
             raise ValueError('Could not find the epic for task {}'.format(
                 issue.key))
         epic_name = getattr(epic.fields, self.epic_name_field)
