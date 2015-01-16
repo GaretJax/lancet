@@ -465,10 +465,17 @@ def setup(ctx, force):
         )
         ctx.exit(1)
 
-    tracker_url = click.prompt('URL of the issue tracker')
+    click.echo('Address of the issue tracker (your JIRA instance). \n'
+               'Normally in the form https://<company>.atlassian.net.')
+    tracker_url = click.prompt('URL')
     tracker_user = click.prompt('Username for {}'.format(tracker_url))
-    timer_url = click.prompt('URL of the time tracker')
+    click.echo()
+
+    click.echo('Address of the time tracker (your Harvest instance). \n'
+               'Normally in the form https://<company>.harvestapp.com.')
+    timer_url = click.prompt('URL')
     timer_user = click.prompt('Username for {}'.format(timer_url))
+    click.echo()
 
     config = configparser.ConfigParser()
 
@@ -483,7 +490,7 @@ def setup(ctx, force):
     with open(USER_CONFIG, 'w') as fh:
         config.write(fh)
 
-    click.secho('\nConfiguration correctly written to "{}".'
+    click.secho('Configuration correctly written to "{}".'
                 .format(USER_CONFIG), fg='green')
 
     # TODO: Add wizard to setup shell integration
