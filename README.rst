@@ -54,6 +54,12 @@ For each not-yet-configured project, you can then run::
 This creates a new project-level configuration file that can be shared across
 different users (and thus commited to source control).
 
+Install dev version
+===================
+
+    ~/.local/venvs/lancet/bin uninstall lancet
+    ~/.local/venvs/lancet/bin install https://github.com/GaretJax/lancet/archive/master.zip
+
 
 TODO
 ====
