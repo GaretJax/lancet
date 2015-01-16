@@ -59,7 +59,7 @@ def get_transition(ctx, lancet, issue, to_status):
 def assign_issue(lancet, issue, username, active_status=None):
     with taskstatus('Assigning issue to you') as ts:
         assignee = issue.fields.assignee
-        if not assignee or assignee.key != username:
+        if not assignee or assignee.name != username:
             if issue.fields.status.name == active_status:
                 ts.abort('Issue already active and not assigned to you')
             else:
@@ -365,7 +365,7 @@ def pull_request(ctx, base_branch, open_pr):
             ts.abort('No working branch found')
 
         assignee = issue.fields.assignee
-        if not assignee or assignee.key != username:
+        if not assignee or assignee.name != username:
             ts.abort('Issue currently not assigned to you')
 
         # TODO: Check mergeability
