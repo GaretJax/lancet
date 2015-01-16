@@ -228,12 +228,21 @@ class EpicTaskMapper:
 
     def get_epic(self, issue):
         from jira.resources import Issue
+        if issue.fields.issuetype.subtask:
+            parent = Issue(issue._options, issue._session)
+            parent.find(issue.fields.parent.key)
+            issue = parent
         epic = Issue(issue._options, issue._session)
         epic.find(getattr(issue.fields, self.epic_link_field))
         return epic
 
     def __call__(self, timer, project_id, issue):
-        epic = self.get_epic(issue)
+        try:
+            epic = self.get_epic(issue)
+        except:
+            import pdb; pdb.set_trace()
+            raise ValueError('Could not find the epic for task {}'.format(
+                issue.key))
         epic_name = getattr(epic.fields, self.epic_name_field)
 
         for t in timer.tasks(project_id):
