@@ -94,6 +94,8 @@ def get_credentials_for_remote(remote):
     p = giturlparse(remote.url)
     remote_username = p._user
 
+    TOKEN_USER = b'x-oauth-basic'
+
     if p.protocol == 'ssh':
         credentials = pygit2.KeypairFromAgent(remote_username)
     elif p.protocol == 'https':
@@ -103,13 +105,22 @@ def get_credentials_for_remote(remote):
             out = subprocess.check_output([
                 'security', 'find-internet-password',
                 '-r', 'htps',
-                '-s', 'github.com',
-            ])
-            match = re.search(rb'"acct"<blob>="([0-9a-f]+)"', out)
-            token = match.group(1)
+                '-s', p.domain,
+                '-g',
+            ], stderr=subprocess.STDOUT)
+
+            username = re.search(rb'"acct"<blob>="([^"]+)"', out)
+            username = username.group(1)
+
+            password = re.search(rb'password: "([^"]+)"', out)
+            password = password.group(1)
+
+            if password == TOKEN_USER:
+                username, password = password, username
         except:
             raise NotImplementedError('No authentication support.')
-        credentials = pygit2.UserPass('x-oauth-basic', token)
+
+        credentials = pygit2.UserPass(username, password)
 
     return credentials
 
