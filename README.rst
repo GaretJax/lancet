@@ -59,8 +59,8 @@ Install dev version
 
 ::
 
-   ~/.local/venvs/lancet/bin uninstall lancet
-   ~/.local/venvs/lancet/bin install https://github.com/GaretJax/lancet/archive/master.zip
+   ~/.local/venvs/lancet/bin/pip uninstall lancet
+   ~/.local/venvs/lancet/bin/pip install https://github.com/GaretJax/lancet/archive/master.zip
 
 
 TODO
