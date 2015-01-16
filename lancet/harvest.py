@@ -192,7 +192,7 @@ class MappedProjectID:
         project_ids = string.split(',')
         project_ids = (p.split(':') for p in project_ids)
         project_ids = ((None, p[0]) if len(p) == 1 else p for p in project_ids)
-        project_ids = ((k, int(v)) for k, v in project_ids)
+        project_ids = ((k, int(v)) for k, v in project_ids if v)
         project_ids = dict(project_ids)
         return cls(project_ids)
 
