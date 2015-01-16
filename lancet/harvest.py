@@ -217,8 +217,9 @@ def mapped_project_id_getter(lancet):
 
 
 def fixed_task_id_getter(lancet):
-    task_id = int(lancet.config.get('harvest', 'task_id'))
-    return lambda _1, _2, _3: task_id
+    def getter(timer, project_id, issue):
+        return int(lancet.config.get('harvest', 'task_id'))
+    return getter
 
 
 class EpicTaskMapper:
