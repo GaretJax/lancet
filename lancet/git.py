@@ -10,8 +10,11 @@ from giturlparse import parse as giturlparse
 from .utils import taskstatus
 
 
+TOKEN_USER = b'x-oauth-basic'
+
+
 class PrefixedIDBranchName:
-    def get_prefix(issue):
+    def get_prefix(self, issue):
         raise NotImplementedError()
 
     def get_issue_key(self, branch_name):
@@ -173,8 +176,6 @@ class Repository(pygit2.Repository):
             return
         p = giturlparse(remote.url)
         remote_username = p._user
-
-        TOKEN_USER = b'x-oauth-basic'
 
         if p.protocol == 'ssh':
             credentials = pygit2.KeypairFromAgent(remote_username)
