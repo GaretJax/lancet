@@ -465,9 +465,9 @@ def setup(ctx, force):
         )
         ctx.exit(1)
 
-    tracker_url = click.prompt('URL of the issue tracker')
+    tracker_url = click.prompt('URL of the issue tracker (https://<company>.atlassian.net)')
     tracker_user = click.prompt('Username for {}'.format(tracker_url))
-    timer_url = click.prompt('URL of the time tracker')
+    timer_url = click.prompt('URL of the time tracker (https://<company>.harvestapp.com)')
     timer_user = click.prompt('Username for {}'.format(timer_url))
 
     config = configparser.ConfigParser()
