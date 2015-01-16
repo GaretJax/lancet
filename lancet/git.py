@@ -14,6 +14,8 @@ TOKEN_USER = b'x-oauth-basic'
 
 
 class PrefixedIDBranchName:
+    slug_length = 50
+
     def get_prefix(self, issue):
         raise NotImplementedError()
 
@@ -22,7 +24,7 @@ class PrefixedIDBranchName:
 
     def __call__(self, issue):
         discriminator = '{}{}_'.format(self.get_prefix(issue), issue.key)
-        slug = slugify(issue.fields.summary[:30])
+        slug = slugify(issue.fields.summary[:self.slug_length])
         full_name = '{}{}'.format(discriminator, slug)
         return discriminator, full_name
 
