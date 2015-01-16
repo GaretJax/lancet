@@ -1,8 +1,11 @@
 import sys
+import re
+import six
 
 import pygit2
 import click
 from slugify import slugify
+from giturlparse import parse as giturlparse
 
 from .utils import taskstatus
 
@@ -10,6 +13,9 @@ from .utils import taskstatus
 class PrefixedIDBranchName:
     def get_prefix(issue):
         raise NotImplementedError()
+
+    def get_issue_key(self, branch_name):
+        raise Exception('Unable to find current issue.')
 
     def __call__(self, issue):
         discriminator = '{}{}_'.format(self.get_prefix(issue), issue.key)
@@ -24,6 +30,12 @@ class FixedPrefixIDBranchName(PrefixedIDBranchName):
 
     def get_prefix(self, issue):
         return self._prefix
+
+    def get_issue_key(self, branch_name):
+        match = re.search(self._prefix + r'([A-Z]{2,}-[0-9]+)', branch_name)
+        if match is None:
+            raise Exception('Unable to find current issue.')
+        return match.group(1)
 
 
 class TaskTypePrefixIDBranchName(PrefixedIDBranchName):
@@ -43,6 +55,14 @@ class TaskTypePrefixIDBranchName(PrefixedIDBranchName):
 
         raise ValueError('Could not find a prefix for issue type "{}"'
                          .format(issue.fields.issuetype))
+
+    def get_issue_key(self, branch_name):
+        for prefix in six.itervalues(self._prefixes):
+            match = re.search(prefix + r'([A-Z]{2,}-[0-9]+)', branch_name)
+            if match is not None:
+                return match.group(1)
+        else:
+            raise Exception('Unable to find current issue.')
 
     @classmethod
     def fromstring(cls, string):
@@ -147,3 +167,39 @@ class Repository(pygit2.Repository):
         for remote in self.remotes:
             if remote.name == name:
                 return remote
+
+    def get_credentials_for_remote(self, remote):
+        if not remote:
+            return
+        p = giturlparse(remote.url)
+        remote_username = p._user
+
+        TOKEN_USER = b'x-oauth-basic'
+
+        if p.protocol == 'ssh':
+            credentials = pygit2.KeypairFromAgent(remote_username)
+        elif p.protocol == 'https':
+            # TODO: What if this fails? (platform, pwd not stored,...)
+            try:
+                import subprocess
+                out = subprocess.check_output([
+                    'security', 'find-internet-password',
+                    '-r', 'htps',
+                    '-s', p.domain,
+                    '-g',
+                ], stderr=subprocess.STDOUT)
+
+                username = re.search(rb'"acct"<blob>="([^"]+)"', out)
+                username = username.group(1)
+
+                password = re.search(rb'password: "([^"]+)"', out)
+                password = password.group(1)
+
+                if password == TOKEN_USER:
+                    username, password = password, username
+            except:
+                raise NotImplementedError('No authentication support.')
+
+            credentials = pygit2.UserPass(username, password)
+
+        return credentials

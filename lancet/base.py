@@ -109,12 +109,9 @@ class Lancet:
         # TODO: Move this method to the JIRA class
 
         if key is None:
-            # TODO: This should be factored out of here
-            match = re.search(r'feature/([A-Z]{2,}-[0-9]+)',
-                              self.repo.head.name)
-            if match is None:
-                raise Exception('Unable to find current issue.')
-            key = match.group(1)
+            name_getter = self.get_instance_from_config(
+                'repository', 'branch_name_getter')
+            key = name_getter.get_issue_key(self.repo.head.name)
         elif key.isdigit():
             project_key = self.config.get('tracker', 'default_project')
             if project_key:

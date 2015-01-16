@@ -6,7 +6,6 @@ import configparser
 import click
 import github3
 import keyring
-import pygit2
 from giturlparse import parse as giturlparse
 
 from . import __version__
@@ -88,50 +87,13 @@ def setup_helper(ctx, param, value):
     ctx.exit()
 
 
-def get_credentials_for_remote(remote):
-    if not remote:
-        return
-    p = giturlparse(remote.url)
-    remote_username = p._user
-
-    TOKEN_USER = b'x-oauth-basic'
-
-    if p.protocol == 'ssh':
-        credentials = pygit2.KeypairFromAgent(remote_username)
-    elif p.protocol == 'https':
-        # TODO: What if this fails? (platform, pwd not stored,...)
-        try:
-            import subprocess
-            out = subprocess.check_output([
-                'security', 'find-internet-password',
-                '-r', 'htps',
-                '-s', p.domain,
-                '-g',
-            ], stderr=subprocess.STDOUT)
-
-            username = re.search(rb'"acct"<blob>="([^"]+)"', out)
-            username = username.group(1)
-
-            password = re.search(rb'password: "([^"]+)"', out)
-            password = password.group(1)
-
-            if password == TOKEN_USER:
-                username, password = password, username
-        except:
-            raise NotImplementedError('No authentication support.')
-
-        credentials = pygit2.UserPass(username, password)
-
-    return credentials
-
-
 def get_branch(lancet, issue, base_branch=None, create=True):
     if not base_branch:
         base_branch = lancet.config.get('repository', 'base_branch')
     remote_name = lancet.config.get('repository', 'remote_name')
 
     remote = lancet.repo.lookup_remote(remote_name)
-    credentials = get_credentials_for_remote(remote)
+    credentials = lancet.repo.get_credentials_for_remote(remote)
 
     name_getter = lancet.get_instance_from_config(
         'repository', 'branch_name_getter')
@@ -389,7 +351,7 @@ def pull_request(ctx, base_branch, open_pr):
         if not remote:
             ts.abort('Remote "{}" not found', remote_name)
 
-        remote.credentials = get_credentials_for_remote(remote)
+        remote.credentials = lancet.repo.get_credentials_for_remote(remote)
         remote.push(branch.name)
 
         ts.ok('Pushed latest changes to "{}"', remote_name)
