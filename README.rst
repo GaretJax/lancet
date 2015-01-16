@@ -57,8 +57,10 @@ different users (and thus commited to source control).
 Install dev version
 ===================
 
-    ~/.local/venvs/lancet/bin uninstall lancet
-    ~/.local/venvs/lancet/bin install https://github.com/GaretJax/lancet/archive/master.zip
+::
+
+   ~/.local/venvs/lancet/bin uninstall lancet
+   ~/.local/venvs/lancet/bin install https://github.com/GaretJax/lancet/archive/master.zip
 
 
 TODO
