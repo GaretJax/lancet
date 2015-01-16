@@ -251,7 +251,7 @@ class EpicTaskMapper:
 
         raise ValueError(
             'Could not find a task with the name "{}" in the Harvest project '
-            'with ID {}'.format(self._tracker_field_name, project_id))
+            'with ID {}'.format(epic_name, project_id))
 
 
 def epic_task_id_getter(lancet):
