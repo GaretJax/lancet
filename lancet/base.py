@@ -179,7 +179,7 @@ class Lancet:
     def tracker(self):
         def checker(url, username, password):
             try:
-                JIRA(server=url, basic_auth=(username, password))
+                JIRA(options={'server': url}, basic_auth=(username, password))
             except JIRAError:
                 return False
             else:
