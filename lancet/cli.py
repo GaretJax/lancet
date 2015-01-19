@@ -627,56 +627,6 @@ def harvest_tasks(lancet, project_id):
 main.add_command(harvest_tasks)
 
 
-@click.command(name='harvest-info')
-@click.argument('issue', required=False)
-@click.pass_obj
-def harvest_info(lancet, issue):
-    """Get the Harvest information related to the given issue."""
-    issue = get_issue(lancet, issue)
-
-    with taskstatus('Getting Harvest project') as ts:
-        project_id = lancet.timer.get_project_id(lancet.timer, issue)
-        projects = lancet.timer.projects()
-
-        for project in projects:
-            if project['id'] == project_id:
-                ts.ok('Harvest project: "{}" ({})',
-                      project['name'], project_id)
-                break
-        else:
-            ts.fail('Project with ID {} not found', project_id, abort=True)
-
-    with taskstatus('Getting Harvest task') as ts:
-        task_id = lancet.timer.get_task_id(lancet.timer, project_id, issue)
-
-        for task in lancet.timer.tasks(project_id):
-            if task['id'] == task_id:
-                ts.ok('Harvest task: "{}" ({})', task['name'], task_id)
-                break
-        else:
-            ts.fail('Task with ID {} not found', task_id, abort=True)
-
-main.add_command(harvest_info)
-
-
-@click.command()
-@click.argument('project_key', required=False)
-@click.pass_obj
-def epics(lancet, project_key):
-    """Get the Harvest information related to the given issue."""
-    if project_key is None:
-        project_key = lancet.config.get('tracker', 'default_project')
-
-    epics = lancet.tracker.search_issues('project={} and issuetype = Epic'
-                                         .format(project_key))
-
-    for e in sorted(epics, key=lambda e: e.fields.customfield_10008):
-        print('{} ({})'.format(e.fields.customfield_10008, e.key))
-
-
-main.add_command(epics)
-
-
 # TODO:
 # * review
 #     pull
