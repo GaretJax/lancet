@@ -2,13 +2,19 @@
 History
 =======
 
-Unreleased
-==========
+0.6.0 - 2015-01-19
+==================
 
 * Added support for pluggable Harvest task/project mapper.
 * Added support for epics based time tracking.
-* Added support for pluggable branch namign backends.
+* Added support for pluggable branch naming backends.
 * Added support for different branch prefixes based on issue type.
+* Added URL hints to ``lancet setup``.
+* Fix assignee comparison bug.
+* More robust support for flawed versions of the git ``osxkeychain``
+  credentials helper.
+* Increase the slug length in branch names to 50 chars.
+* Built in support for debugging exceptions.
 
 
 0.5.1 - 2015-01-13
