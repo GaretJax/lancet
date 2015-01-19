@@ -1,7 +1,9 @@
 import os
+import sys
 import re
 import glob
 import configparser
+import pdb
 
 import click
 import github3
@@ -16,6 +18,12 @@ from .utils import taskstatus
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+
+def hr(char='─', width=None, **kwargs):
+    if width is None:
+        width = click.get_terminal_size()[0]
+    click.secho('─' * width, **kwargs)
 
 
 def get_issue(lancet, key=None):
@@ -105,14 +113,29 @@ def get_branch(lancet, issue, base_branch=None, create=True):
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version=__version__, message='%(prog)s %(version)s')
+@click.option('-d', '--debug/--no-debug', default=False)
 @click.option('--setup-helper', callback=setup_helper, is_flag=True,
               expose_value=False, is_eager=True,
               help='Print the shell integration code and exit.')
 @click.pass_context
-def main(ctx):
+def main(ctx, debug):
     # TODO: Enable this using a command line switch
     # import logging
     # logging.basicConfig(level=logging.DEBUG)
+
+    if debug:
+        def exception_handler(type, value, traceback):
+            click.secho('\nAn exception occurred while executing the '
+                        'requested command:', fg='red')
+            hr(fg='red')
+            sys.__excepthook__(type, value, traceback)
+
+            click.secho('\nAs requested I will now drop you inside an '
+                        'interactive debugging session:', fg='red')
+            hr(fg='red')
+
+            pdb.post_mortem(traceback)
+        sys.excepthook = exception_handler
 
     try:
         integration_helper = ShellIntegrationHelper(
@@ -127,7 +150,6 @@ def main(ctx):
 
     ctx.obj = Lancet(config, integration_helper)
     ctx.obj.call_on_close = ctx.call_on_close
-
     ctx.call_on_close(integration_helper.close)
 
 
@@ -595,7 +617,7 @@ def harvest_tasks(lancet, project_id):
         if project['id'] == project_id:
             click.echo('{:>9d} {} {}'.format(
                 project['id'], click.style('‣', fg='yellow'), project['name']))
-            click.echo('─' * click.get_terminal_size()[0])
+            hr()
 
             for task in project['tasks']:
                 click.echo('{:>9d} {} {}'.format(
@@ -603,6 +625,56 @@ def harvest_tasks(lancet, project_id):
             break
 
 main.add_command(harvest_tasks)
+
+
+@click.command(name='harvest-info')
+@click.argument('issue', required=False)
+@click.pass_obj
+def harvest_info(lancet, issue):
+    """Get the Harvest information related to the given issue."""
+    issue = get_issue(lancet, issue)
+
+    with taskstatus('Getting Harvest project') as ts:
+        project_id = lancet.timer.get_project_id(lancet.timer, issue)
+        projects = lancet.timer.projects()
+
+        for project in projects:
+            if project['id'] == project_id:
+                ts.ok('Harvest project: "{}" ({})',
+                      project['name'], project_id)
+                break
+        else:
+            ts.fail('Project with ID {} not found', project_id, abort=True)
+
+    with taskstatus('Getting Harvest task') as ts:
+        task_id = lancet.timer.get_task_id(lancet.timer, project_id, issue)
+
+        for task in lancet.timer.tasks(project_id):
+            if task['id'] == task_id:
+                ts.ok('Harvest task: "{}" ({})', task['name'], task_id)
+                break
+        else:
+            ts.fail('Task with ID {} not found', task_id, abort=True)
+
+main.add_command(harvest_info)
+
+
+@click.command()
+@click.argument('project_key', required=False)
+@click.pass_obj
+def epics(lancet, project_key):
+    """Get the Harvest information related to the given issue."""
+    if project_key is None:
+        project_key = lancet.config.get('tracker', 'default_project')
+
+    epics = lancet.tracker.search_issues('project={} and issuetype = Epic'
+                                         .format(project_key))
+
+    for e in sorted(epics, key=lambda e: e.fields.customfield_10008):
+        print('{} ({})'.format(e.fields.customfield_10008, e.key))
+
+
+main.add_command(epics)
 
 
 # TODO:
