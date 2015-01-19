@@ -13,5 +13,6 @@ include requirements-test.txt
 include requirements.txt
 
 exclude .coveragerc
+exclude .travis.yml
 
 prune docs
