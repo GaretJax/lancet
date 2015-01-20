@@ -189,6 +189,7 @@ class Repository(pygit2.Repository):
                     'security', 'find-internet-password',
                     '-r', 'htps',
                     '-s', p.domain,
+                    '-p', '',
                     '-g',
                 ], stderr=subprocess.STDOUT)
 
