@@ -3,6 +3,7 @@ import functools
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlencode
 import requests
+from jira.resources import Issue
 
 
 class MetaRetriever(HTMLParser):
@@ -196,19 +197,29 @@ class MappedProjectID:
         project_ids = dict(project_ids)
         return cls(project_ids)
 
+    def get_issue_project_id(self, issue):
+        return self._project_ids.get(str(issue.fields.issuetype))
+
     def __call__(self, timer, issue):
-        try:
-            return self._project_ids[str(issue.fields.issuetype)]
-        except KeyError:
-            pass
+        project_id = self.get_issue_project_id(issue)
 
-        try:
-            return self._project_ids[None]
-        except KeyError:
-            pass
+        # If the issue did not match any explicitly defined project and it is
+        # a subtask, get the parent issue
+        if not project_id and issue.fields.issuetype.subtask:
+            parent = Issue(issue._options, issue._session)
+            parent.find(issue.fields.parent.key)
+            project_id = self.get_issue_project_id(parent)
 
-        raise ValueError('Could not find a project ID for issue type "{}"'
-                         .format(issue.fields.issuetype))
+        # If no project was found yet, get the default project
+        if not project_id:
+            project_id = self._project_ids.get(None)
+
+        # At this point, if we didn't get a project, then it's an error
+        if not project_id:
+            raise ValueError('Could not find a project ID for issue type "{}"'
+                             .format(issue.fields.issuetype))
+
+        return project_id
 
 
 def mapped_project_id_getter(lancet):
@@ -228,7 +239,6 @@ class EpicTaskMapper:
         self.epic_name_field = epic_name_field
 
     def get_epic(self, issue):
-        from jira.resources import Issue
         if issue.fields.issuetype.subtask:
             parent = Issue(issue._options, issue._session)
             parent.find(issue.fields.parent.key)
