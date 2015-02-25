@@ -83,3 +83,9 @@ class SuspendTask:
                 task.__enter__()
 
 taskstatus = PrintTaskStatus
+
+
+def hr(char='─', width=None, **kwargs):
+    if width is None:
+        width = click.get_terminal_size()[0]
+    click.secho('─' * width, **kwargs)
