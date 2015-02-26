@@ -1,36 +1,8 @@
-import functools
+import json
+from urllib.parse import urljoin, urlparse
 
-from html.parser import HTMLParser
-from urllib.parse import urljoin, urlencode
 import requests
 from jira.resources import Issue
-
-
-class MetaRetriever(HTMLParser):
-    def __init__(self, name, *args, **kwargs):
-        self.meta_name = name
-        self.meta_content = ''
-        kwargs['convert_charrefs'] = True
-        super().__init__(*args, **kwargs)
-
-    def handle_starttag(self, tag, attrs):
-        attrs = dict(attrs)
-        if tag == 'meta' and attrs.get('name', None) == self.meta_name:
-            self.meta_content = attrs.get('content', '')
-
-
-def get_meta_content(html, name):
-    retriever = MetaRetriever(name)
-    retriever.feed(html)
-    return retriever.meta_content
-
-
-def requires_login(func):
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        self._login()
-        return func(self, *args, **kwargs)
-    return wrapper
 
 
 class HarvestError(Exception):
@@ -56,7 +28,18 @@ class HarvestAPI:
         return payload
 
     def _post(self, url, data):
-        return self._session.post(urljoin(self.server, url)).json()
+        r = self._session.post(
+            urljoin(self.server, url),
+            data=json.dumps(data),
+            headers={
+                'content-type': 'application/json',
+                'accept': 'application/json',
+            },
+        )
+        payload = r.json()
+        if r.status_code not in [200, 201]:
+            raise HarvestError(payload['message'])
+        return payload
 
     def toggle(self, id):
         return self._get('daily/timer/{}'.format(id))
@@ -95,38 +78,11 @@ class HarvestAPI:
 
 
 class HarvestPlatform(HarvestAPI):
-    platform_url = 'https://platform.harvestapp.com'
-
     def __init__(self, server, basic_auth, project_id_getter, task_id_getter):
-        self._web_session = requests.Session()
         self.get_project_id = project_id_getter
         self.get_task_id = task_id_getter
-        self._csrf_token = None
         super().__init__(server, basic_auth)
 
-    def _get_csrf_token(self):
-        if not self._csrf_token:
-            r = self._web_session.get(urljoin(self.server, '/account/login'))
-            self._csrf_token = get_meta_content(r.text, 'csrf-token')
-        return self._csrf_token
-
-    def _login(self):
-        # TODO: Cache the harvest session across commands invocations
-        if '_harvest_sess' in self._web_session.cookies:
-            return
-        data = {
-            'utf8': '✓',
-            'authenticity_token': self._get_csrf_token(),
-            'user[email]': self.auth[0],
-            'user[password]': self.auth[1],
-        }
-        self._web_session.post(
-            urljoin(self.server, '/account/create_session'),
-            data=data,
-        )
-        self._csrf_token = None
-
-    @requires_login
     def start(self, issue, resume=True):
         project = issue.fields.project
 
@@ -146,40 +102,34 @@ class HarvestPlatform(HarvestAPI):
         name = '{} - {}'.format(issue.key, issue.fields.summary)
         project_id = self.get_project_id(self, issue)
         task_id = self.get_task_id(self, project_id, issue)
+        permalink = issue.permalink()
+        host = urlparse(permalink).hostname
 
-        qs = urlencode({
-            'app_name': 'JIRA',
-            'base_url': issue.permalink(),
-            'external_account_id': 1,  # ID of the JIRA instance
-            'external_group_id': project.id,
-            'external_group_name': project.name,
-            'external_item_id': issue.id,
-            'external_item_name': name,
-            'service': 'divio-ch.atlassian.net',
-        })
         data = {
-            'utf8': '✓',
-            'project_id': project_id,
-            'task_id': task_id,
+            # 'adjustment_record': False,
+            # 'created_at': None,
+            'external_ref': {
+                'group_id': project.id,
+                'group_name': project.name,
+                'id': issue.id,
+                'namespace': permalink,
+                'service': host,
+                'account_id': 1,
+            },
+            'hours': 0,
+            # 'id': None,
+            # 'is_billed': False,
+            # 'is_closed': False,
             'notes': name,
-            'hours': '',
-            'button': '',
+            'project_id': project_id,
+            # 'spent_at': None,
+            # 'started_at': "1:23",
+            'task_id': task_id,
+            # 'timer_started_at': None,
+            # 'updated_at': None,
+            # 'user_id': 123456,
         }
-        headers = {
-            'x-csrf-token': self._get_csrf_token(),
-            'x-requested-with': 'XMLHttpRequest',
-        }
-        r = self._web_session.post(
-            urljoin(self.platform_url, '/platform/timer?{}'.format(qs)),
-            data=data,
-            headers=headers,
-        )
-        assert r.status_code == 200
-        assert 'message' in r.json()
-
-    def close(self):
-        self._web_session.close()
-        super(HarvestPlatform, self).close()
+        self._post('daily/add', data)
 
 
 class MappedProjectID:
