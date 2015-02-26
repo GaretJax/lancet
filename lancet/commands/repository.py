@@ -1,8 +1,9 @@
 import click
 import github3
 from giturlparse import parse as giturlparse
+from jinja2 import Template
 
-from ..utils import taskstatus
+from ..utils import taskstatus, content_from_path
 from ..helpers import get_issue, get_transition, set_issue_status, get_branch
 
 
@@ -57,8 +58,11 @@ def pull_request(ctx, base_branch, open_pr):
         p = giturlparse(remote.url)
         gh_repo = lancet.github.repository(p.owner, p.repo)
 
-        message = click.edit("{} – {}\n\n{}".format(
-            issue.key, issue.fields.summary, issue.permalink()))
+        template_content = content_from_path(
+            lancet.config.get('repository', 'pr_template'))
+        template = Template(template_content)
+        message_template = template.render(issue=issue)
+        message = click.edit(message_template)
 
         if not message:
             ts.abort('You didn\'t provide a title for the pull request')

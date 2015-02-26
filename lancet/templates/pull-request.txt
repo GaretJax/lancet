@@ -1,0 +1,3 @@
+{{ issue.key }} – {{ issue.fields.summary }}
+
+{{ issue.permalink() }}
