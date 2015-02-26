@@ -2,6 +2,14 @@
 History
 =======
 
+
+0.7.1 - 2015-02-26
+==================
+
+* Expand users in the template path.
+* Update requirements.
+
+
 0.7.0 - 2015-02-26
 ==================
 

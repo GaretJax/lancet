@@ -103,6 +103,7 @@ def content_from_path(path, encoding='utf-8'):
         package, path = path.split(':', 1)
         content = resource_string(package, path)
     else:
+        path = os.path.expanduser(path)
         with open(path, 'rb') as fh:
             content = fh.read()
 
