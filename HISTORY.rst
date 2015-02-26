@@ -2,6 +2,23 @@
 History
 =======
 
+0.7.0 - 2015-02-26
+==================
+
+* Added support for Jinja2-rendered templates to define the initial
+  pull-request title/body used by the ``pr`` command.
+* Update the Harvest API to make use of the ``external_ref`` argument instead
+  of simulating a browsing session. This trims down on the number of requests
+  needed to start a timer and improves performance.
+* Added a ``checkout`` command to easily checkout an existing branch based
+  solely on the issue ID.
+* All commands are now dynamically loaded. Additional commands can be defined
+  in the settings (this also supports custom external commands).
+* The Harvest project is now retrieved from the supertask if none can be
+  defined by looking at the subtask.
+* Get the github login token from the keychain in a more robust way.
+
+
 0.6.0 - 2015-01-19
 ==================
 
@@ -20,7 +37,7 @@ History
 0.5.1 - 2015-01-13
 ==================
 
-* Coerce config values to int when calling `init`.
+* Coerce config values to int when calling ``init``.
 
 
 0.5.0 – 2015-01-05
