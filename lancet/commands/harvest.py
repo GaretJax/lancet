@@ -2,6 +2,8 @@ import re
 
 import click
 
+from lancet.utils import hr
+
 
 @click.command()
 @click.argument('query', required=False)
