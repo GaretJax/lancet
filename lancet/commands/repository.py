@@ -49,7 +49,7 @@ def pull_request(ctx, base_branch, open_pr):
             ts.abort('Remote "{}" not found', remote_name)
 
         remote.credentials = lancet.repo.get_credentials_for_remote(remote)
-        remote.push(branch.name)
+        remote.push([branch.name])
 
         ts.ok('Pushed latest changes to "{}"', remote_name)
 

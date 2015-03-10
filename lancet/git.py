@@ -169,9 +169,7 @@ class BranchGetter:
 
 class Repository(pygit2.Repository):
     def lookup_remote(self, name):
-        for remote in self.remotes:
-            if remote.name == name:
-                return remote
+        return self.remotes[name]
 
     def get_credentials_for_remote(self, remote):
         if not remote:
