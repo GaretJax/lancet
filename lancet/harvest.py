@@ -38,7 +38,8 @@ class HarvestAPI:
         )
         payload = r.json()
         if r.status_code not in [200, 201]:
-            raise HarvestError(payload['message'])
+            msg = '{kind}: {message}'.format(**payload['error'])
+            raise HarvestError(msg)
         return payload
 
     def toggle(self, id):
