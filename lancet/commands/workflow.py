@@ -106,7 +106,7 @@ def workon(ctx, issue, base_branch):
 
 
 @click.command()
-@click.argument('issue')
+@click.argument('issue', required=False)
 @click.pass_obj
 def time(lancet, issue):
     """
