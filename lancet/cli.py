@@ -2,8 +2,10 @@ import os
 import sys
 import pdb
 import importlib
+import shlex
 
 import click
+from click.utils import make_str
 
 from . import __version__
 from .settings import load_config, PROJECT_CONFIG
@@ -39,10 +41,42 @@ class ConfigurableLoader(click.Group):
             config = cls.get_config()
         return config.options('commands')
 
+    @classmethod
+    def get_configured_aliases(cls, config=None):
+        if config is None:
+            config = cls.get_config()
+        return config.options('alias')
+
     def list_commands(self, ctx):
         commands = set(super().list_commands(ctx))
         commands = commands.union(self.get_configured_commands())
         return sorted(commands)
+
+    def list_aliases(self, ctx):
+        return sorted(self.get_configured_aliases())
+
+    def format_options(self, ctx, formatter):
+        super().format_options(ctx, formatter)
+        self.format_aliases(ctx, formatter)
+
+    def format_aliases(self, ctx, formatter):
+        rows = []
+        for alias in self.list_aliases(ctx):
+            rows.append((alias, self.get_config().get('alias', alias)))
+
+        if rows:
+            with formatter.section('Configured aliases'):
+                formatter.write_dl(rows)
+
+    def resolve_command(self, ctx, args):
+        cmd_name = make_str(args[0])
+
+        if cmd_name in self.get_configured_aliases():
+            alias_args = self.get_config().get('alias', cmd_name)
+            alias_args = shlex.split(alias_args)
+            args = self.get_alias(ctx, cmd_name) + args[1:]
+
+        return super().resolve_command(ctx, args)
 
     def get_command(self, ctx, name):
         if name in self.get_configured_commands():
@@ -52,6 +86,11 @@ class ConfigurableLoader(click.Group):
             return getattr(module, attr_name)
         else:
             return super().get_command(ctx, name)
+
+    def get_alias(self, ctx, name):
+        args = self.get_config().get('alias', name)
+        args = shlex.split(args)
+        return args
 
 
 @click.command(context_settings=CONTEXT_SETTINGS, cls=ConfigurableLoader)

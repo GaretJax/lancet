@@ -9,6 +9,7 @@ History
 * Update to libgit 0.22 (requires updated of the shared library).
 * Fixed a bug in the handling of Harvest API errors.
 * Make the issue argument to the ``time`` command optional.
+* Add support for command aliases.
 
 
 0.7.1 - 2015-02-26
