@@ -174,6 +174,49 @@ def _setup_helper():
         click.echo(fh.read())
 
 
+@main.command()
+@click.pass_context
+def _commands(ctx):
+    """Prints a list of commands for shell completion hooks."""
+    ctx = ctx.parent
+    ctx.show_hidden_subcommands = False
+    main = ctx.command
+
+    for subcommand in main.list_commands(ctx):
+        cmd = main.get_command(ctx, subcommand)
+        if cmd is None:
+            continue
+        help = cmd.short_help or ''
+        click.echo('{}:{}'.format(subcommand, help))
+
+
+@main.command()
+@click.argument('command_name', metavar='command', required=False)
+@click.pass_context
+def _arguments(ctx, command_name=None):
+    """Prints a list of arguments for shell completion hooks.
+
+    If a command name is given, returns the arguments for that subcommand.
+    The command name has to refer to a command; aliases are not supported.
+    """
+    ctx = ctx.parent
+    main = ctx.command
+    if command_name:
+        command = main.get_command(ctx, command_name)
+        if not command:
+            return
+    else:
+        command = main
+
+    for param in command.get_params(ctx):
+        if param.param_type_name == 'option':
+            option = max(param.opts, key=len)
+            option += '[{}]'.format(param.help or '')
+            if not param.is_flag:
+                option += ':( )'
+            click.echo(option)
+
+
 # TODO:
 # * review
 #     pull
