@@ -55,13 +55,33 @@ class ConfigurableLoader(click.Group):
             config = cls.get_config()
         return config.options('alias')
 
+    @staticmethod
+    def show_help_all(ctx, param, value):
+        if value and not ctx.resilient_parsing:
+            # Explicitly set the flag to show hidden subcommands, otherwise
+            # the code in the `get_help` method would set it to False.
+            ctx.show_hidden_subcommands = True
+            click.echo(ctx.get_help())
+            ctx.exit()
+
     def list_commands(self, ctx):
         commands = set(super().list_commands(ctx))
         commands = commands.union(self.get_configured_commands())
+
+        # Do not list hidden subcommands if the flag is explicitly set on the
+        # context. By default include all commands.
+        if not getattr(ctx, 'show_hidden_subcommands', True):
+            commands = [c for c in commands if not c.startswith('_')]
         return sorted(commands)
 
     def list_aliases(self, ctx):
         return sorted(self.get_configured_aliases())
+
+    def get_help(self, ctx):
+        # By default do not list hidden subcommands.
+        ctx.show_hidden_subcommands = getattr(
+            ctx, 'show_hidden_subcommands', False)
+        return super().get_help(ctx)
 
     def format_options(self, ctx, formatter):
         super().format_options(ctx, formatter)
@@ -73,7 +93,7 @@ class ConfigurableLoader(click.Group):
             rows.append((alias, self.get_config().get('alias', alias)))
 
         if rows:
-            with formatter.section('Configured aliases'):
+            with formatter.section('Aliases'):
                 formatter.write_dl(rows)
 
     def resolve_command(self, ctx, args):
@@ -111,10 +131,15 @@ class ConfigurableLoader(click.Group):
 
 @click.command(context_settings=CONTEXT_SETTINGS, cls=ConfigurableLoader)
 @click.version_option(version=__version__, message='%(prog)s %(version)s')
-@click.option('-d', '--debug/--no-debug', default=False)
 @click.option('--setup-helper', callback=setup_helper, is_flag=True,
               expose_value=False, is_eager=True,
               help='Print the shell integration code and exit.')
+@click.option('-d', '--debug/--no-debug', default=False,
+              help=('Drop into the debugger if the command execution raises '
+                    'an exception.'))
+@click.option('--help-all', is_flag=True, is_eager=True, expose_value=False,
+              callback=ConfigurableLoader.show_help_all,
+              help='Show this message including hidden subcommands.')
 @click.pass_context
 def main(ctx, debug):
     # TODO: Enable this using a command line switch
