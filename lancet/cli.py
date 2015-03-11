@@ -3,6 +3,7 @@ import sys
 import pdb
 import importlib
 import shlex
+import subprocess
 
 import click
 from click.utils import make_str
@@ -24,6 +25,13 @@ def setup_helper(ctx, param, value):
     with open(helper) as fh:
         click.echo(fh.read())
     ctx.exit()
+class SubprocessExecuter(click.BaseCommand):
+    def parse_args(self, ctx, args):
+        ctx.args = args
+        return args
+
+    def invoke(self, ctx):
+        ctx.exit(subprocess.call(ctx.args[0], shell=True))
 
 
 class ConfigurableLoader(click.Group):
@@ -72,9 +80,22 @@ class ConfigurableLoader(click.Group):
         cmd_name = make_str(args[0])
 
         if cmd_name in self.get_configured_aliases():
-            alias_args = self.get_config().get('alias', cmd_name)
-            alias_args = shlex.split(alias_args)
-            args = self.get_alias(ctx, cmd_name) + args[1:]
+            if cmd_name in self.list_commands(ctx):
+                # Shadowing of existing commands is explicitly disabled.
+                click.secho('"{}" references an existing command. I am '
+                            'ignoring the alias definition.'.format(cmd_name),
+                            fg='yellow')
+            else:
+                # If the command references a configured alias, retrieve it
+                # from the configuration.
+                alias = self.get_config().get('alias', cmd_name)
+                args = args[1:]
+                if alias.startswith('!'):
+                    cmd = SubprocessExecuter('')
+                    additional_args = ' '.join(shlex.quote(a) for a in args)
+                    return '', cmd, [alias[1:] + ' ' + additional_args]
+                else:
+                    args = shlex.split(alias) + args
 
         return super().resolve_command(ctx, args)
 
@@ -86,11 +107,6 @@ class ConfigurableLoader(click.Group):
             return getattr(module, attr_name)
         else:
             return super().get_command(ctx, name)
-
-    def get_alias(self, ctx, name):
-        args = self.get_config().get('alias', name)
-        args = shlex.split(args)
-        return args
 
 
 @click.command(context_settings=CONTEXT_SETTINGS, cls=ConfigurableLoader)
