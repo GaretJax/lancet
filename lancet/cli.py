@@ -17,14 +17,6 @@ from .utils import hr
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
-def setup_helper(ctx, param, value):
-    if not value or ctx.resilient_parsing:
-        return
-    base = os.path.abspath(os.path.dirname(__file__))
-    helper = os.path.join(base, 'helper.sh')
-    with open(helper) as fh:
-        click.echo(fh.read())
-    ctx.exit()
 class SubprocessExecuter(click.BaseCommand):
     def parse_args(self, ctx, args):
         ctx.args = args
@@ -131,9 +123,6 @@ class ConfigurableLoader(click.Group):
 
 @click.command(context_settings=CONTEXT_SETTINGS, cls=ConfigurableLoader)
 @click.version_option(version=__version__, message='%(prog)s %(version)s')
-@click.option('--setup-helper', callback=setup_helper, is_flag=True,
-              expose_value=False, is_eager=True,
-              help='Print the shell integration code and exit.')
 @click.option('-d', '--debug/--no-debug', default=False,
               help=('Drop into the debugger if the command execution raises '
                     'an exception.'))
@@ -174,6 +163,15 @@ def main(ctx, debug):
     ctx.obj = Lancet(config, integration_helper)
     ctx.obj.call_on_close = ctx.call_on_close
     ctx.call_on_close(integration_helper.close)
+
+
+@main.command()
+def _setup_helper():
+    """Print the shell integration code."""
+    base = os.path.abspath(os.path.dirname(__file__))
+    helper = os.path.join(base, 'helper.sh')
+    with open(helper) as fh:
+        click.echo(fh.read())
 
 
 # TODO:
