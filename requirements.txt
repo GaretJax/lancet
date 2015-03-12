@@ -1,8 +1,8 @@
-cffi==0.8.6
+cffi==0.9.1
 click==3.3
 gnureadline==6.3.3
-ipython==2.4.1
-jira==0.40
+ipython==3.0.0
+jira==0.41
 keyring==5.3
 oauthlib==0.7.2
 pycparser==2.10
