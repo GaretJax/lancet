@@ -6,7 +6,7 @@ import click
 from ..settings import LOCAL_CONFIG, load_config
 from ..utils import taskstatus
 from ..helpers import get_issue, get_transition, set_issue_status, assign_issue
-from ..helpers import get_branch
+from ..helpers import get_branch, get_project_keys, get_project_dirs
 
 
 @click.command()
@@ -16,24 +16,16 @@ from ..helpers import get_branch
 @click.pass_obj
 def activate(lancet, method, project):
     """Switch to this project."""
-    workspace = os.path.expanduser(lancet.config.get('lancet', 'workspace'))
-    project_path = None
-
     with taskstatus('Looking up project') as ts:
         if method == 'key':
-            config_files = glob.glob(
-                os.path.join(workspace, '*', LOCAL_CONFIG))
-
-            for path in config_files:
-                config = load_config(path)
-                key = config.get('tracker', 'default_project', fallback=None)
-
-                if key.lower() == project.lower():
-                    project_path = os.path.dirname(path)
+            func = get_project_keys
         elif method == 'dir':
-            project_path = os.path.join(workspace, project)
+            func = get_project_keys
 
-        if not project_path or not os.path.exists(project_path):
+        for key, project_path in func(lancet):
+            if key.lower() == project.lower():
+                break
+        else:
             ts.abort('Project "{}" not found (using {}-based lookup)',
                      project, method)
 
@@ -52,6 +44,18 @@ def activate(lancet, method, project):
     else:
         if 'VIRTUAL_ENV' in os.environ:
             lancet.defer_to_shell('deactivate')
+
+
+@click.command()
+@click.pass_obj
+def _project_keys(lancet):
+    click.echo('\n'.join(k.lower() for k, p in get_project_keys(lancet)))
+
+
+@click.command()
+@click.pass_obj
+def _project_dirs(lancet):
+    click.echo('\n'.join(d.lower() for d, p in get_project_dirs(lancet)))
 
 
 @click.command()
