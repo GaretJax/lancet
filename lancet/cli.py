@@ -222,7 +222,8 @@ def _arguments(ctx, command_name=None):
                          if p.name == param.name]
             if same_dest:
                 option = '({})'.format(' '.join(same_dest)) + option
-            option += '[{}]'.format(param.help or '')
+            if param.help:
+                option += '[{}]'.format(param.help or '')
             if not param.is_flag:
                 option += '=:( )'
             click.echo(option)

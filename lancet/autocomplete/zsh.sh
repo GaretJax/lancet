@@ -4,7 +4,7 @@ local expl
 
 _lancet_commands() {
     local -a commands
-    local -s opts
+    local -a opts
     opts=(
         "${(@f)$(lancet _arguments)}"
     )
@@ -24,7 +24,7 @@ _lancet() {
         shift words
         ((CURRENT --))
         curcontext="${curcontext%:*:*}:lancet-$words[1]:"
-        _arguments -s : "${(@f)$(lancet _arguments $words[1])}" && ret=0
+        _arguments -s "${(@f)$(lancet _arguments $words[1])}" && ret=0
     fi
 }
 
