@@ -10,4 +10,5 @@ function lancet_helper() {
     unset LANCET_SHELL_HELPER
 }
 
+compdef _lancet lancet_helper
 alias lancet=lancet_helper
