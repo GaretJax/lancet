@@ -9,9 +9,11 @@ from ..helpers import get_issue, get_transition, set_issue_status, get_branch
 
 @click.command()
 @click.option('--base', '-b', 'base_branch')
+@click.option('-s', '--stop-timer/--no-stop-timer', default=False,
+              help='Stop the Harvest timer after creating the pull request.')
 @click.option('-o', '--open-pr/--no-open-pr', default=False)
 @click.pass_context
-def pull_request(ctx, base_branch, open_pr):
+def pull_request(ctx, base_branch, open_pr, stop_timer):
     """Create a new pull request for this issue."""
     lancet = ctx.obj
 
@@ -96,9 +98,10 @@ def pull_request(ctx, base_branch, open_pr):
     # TODO: Post to HipChat?
 
     # Stop harvest timer
-    with taskstatus('Pausing harvest timer') as ts:
-        lancet.timer.pause()
-        ts.ok('Harvest timer paused')
+    if stop_timer:
+        with taskstatus('Pausing harvest timer') as ts:
+            lancet.timer.pause()
+            ts.ok('Harvest timer paused')
 
     # Open the pull request page in the browser if requested
     if open_pr:
