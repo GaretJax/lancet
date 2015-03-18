@@ -1,5 +1,9 @@
+import os
+import glob
+
 import click
 
+from .settings import LOCAL_CONFIG, load_config
 from .git import BranchGetter
 from .utils import taskstatus
 
@@ -77,3 +81,21 @@ def get_branch(lancet, issue, base_branch=None, create=True):
                                  remote_name)
 
     return branch_getter(lancet.repo, issue, create=create)
+
+
+def get_project_keys(lancet):
+    workspace = os.path.expanduser(lancet.config.get('lancet', 'workspace'))
+    config_files = glob.glob(os.path.join(workspace, '*', LOCAL_CONFIG))
+
+    for path in config_files:
+        config = load_config(path)
+        key = config.get('tracker', 'default_project', fallback=None)
+        if key:
+            yield key, os.path.dirname(path)
+
+
+def get_project_dirs(lancet):
+    workspace = os.path.expanduser(lancet.config.get('lancet', 'workspace'))
+    for path in glob.glob(os.path.join(workspace, '*', '.lancet')):
+        path = os.path.dirname(path)
+        yield os.path.basename(path), path

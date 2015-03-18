@@ -208,13 +208,53 @@ def _arguments(ctx, command_name=None):
     else:
         command = main
 
-    for param in command.get_params(ctx):
+    types = ['option', 'argument']
+    all_params = sorted(command.get_params(ctx),
+                        key=lambda p: types.index(p.param_type_name))
+
+    def get_name(param):
+        return max(param.opts, key=len)
+
+    for param in all_params:
         if param.param_type_name == 'option':
-            option = max(param.opts, key=len)
-            option += '[{}]'.format(param.help or '')
+            option = get_name(param)
+            same_dest = [get_name(p) for p in all_params
+                         if p.name == param.name]
+            if same_dest:
+                option = '({})'.format(' '.join(same_dest)) + option
+            if param.help:
+                option += '[{}]'.format(param.help or '')
             if not param.is_flag:
-                option += ':( )'
+                option += '=:( )'
             click.echo(option)
+        elif param.param_type_name == 'argument':
+            option = get_name(param)
+            click.echo(':{}'.format(option))
+
+
+@main.command()
+@click.argument('shell', required=False)
+@click.pass_context
+def _autocomplete(ctx, shell):
+    """Print the shell autocompletion code."""
+    if not shell:
+        shell = os.environ.get('SHELL', '')
+        shell = os.path.basename(shell).lower()
+    if not shell:
+        click.secho('Your shell could not be detected, please pass its name '
+                    'as the argument.', fg='red')
+        ctx.exit(-1)
+
+    base = os.path.abspath(os.path.dirname(__file__))
+    autocomplete = os.path.join(base, 'autocomplete', '{}.sh'.format(shell))
+
+    if not os.path.exists(autocomplete):
+        click.secho('Autocompletion for your shell ({}) is currently not '
+                    'supported.', fg='red')
+        ctx.exit(-1)
+
+    with open(autocomplete) as fh:
+        click.echo(fh.read())
 
 
 # TODO:
