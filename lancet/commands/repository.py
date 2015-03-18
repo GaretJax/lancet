@@ -109,9 +109,11 @@ def pull_request(ctx, base_branch, open_pr, stop_timer):
 
 
 @click.command()
+@click.option('-f', '--force/--no-stop-force', default=False,
+              help='Creates a new branch if it does not exist yet.')
 @click.argument('issue')
 @click.pass_obj
-def checkout(lancet, issue):
+def checkout(lancet, force, issue):
     """
     Checkout the branch for the given issue.
 
@@ -120,7 +122,7 @@ def checkout(lancet, issue):
     issue = get_issue(lancet, issue)
 
     # Get the working branch
-    branch = get_branch(lancet, issue, create=False)
+    branch = get_branch(lancet, issue, create=force)
 
     with taskstatus('Checking out working branch') as ts:
         lancet.repo.checkout(branch.name)
