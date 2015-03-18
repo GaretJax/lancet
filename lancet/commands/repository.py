@@ -125,5 +125,7 @@ def checkout(lancet, force, issue):
     branch = get_branch(lancet, issue, create=force)
 
     with taskstatus('Checking out working branch') as ts:
+        if not branch:
+            ts.abort('Working branch not found')
         lancet.repo.checkout(branch.name)
         ts.ok('Checked out "{}"', branch.name)
