@@ -58,7 +58,8 @@ def _project_dirs(lancet):
 
 
 @click.command()
-@click.option('--base', '-b', 'base_branch')
+@click.option('--base', '-b', 'base_branch',
+              help="Base branch to branch off from")
 @click.argument('issue')
 @click.pass_context
 def workon(ctx, issue, base_branch):

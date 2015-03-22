@@ -1,7 +1,5 @@
 #compdef lancet
 
-local expl
-
 _lancet_commands() {
     local -a commands
     local -a opts
