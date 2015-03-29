@@ -28,12 +28,28 @@ class SubprocessExecuter(click.BaseCommand):
 
 class ConfigurableLoader(click.Group):
 
+    _config = None
+    _path_setup_complete = False
+
+    def __init__(self, *args, **kwargs):
+        self.__class__.setup_path()
+        super().__init__(*args, **kwargs)
+
+    @classmethod
+    def setup_path(cls):
+        if not cls._path_setup_complete:
+            paths = cls.get_config().getlist('lancet', 'add_to_path')
+            for p in reversed(paths):
+                sys.path.insert(0, os.path.expanduser(p))
+
     @classmethod
     def get_config(cls):
-        if os.path.exists(PROJECT_CONFIG):
-            return load_config(PROJECT_CONFIG)
-        else:
-            return load_config()
+        if not cls._config:
+            if os.path.exists(PROJECT_CONFIG):
+                cls._config = load_config(PROJECT_CONFIG)
+            else:
+                cls._config = load_config()
+        return cls._config
 
     @classmethod
     def get_configured_commands(cls, config=None):
