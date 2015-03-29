@@ -4,6 +4,7 @@ Configuration management for the different components.
 
 import os
 import configparser
+import importlib
 
 
 PACKAGE = 'lancet'
@@ -21,6 +22,17 @@ DEFAULT_FILES = [
 ]
 
 
+class ConfigParser(configparser.ConfigParser):
+    def getclass(self, section, key):
+        import_path = self.get(section, key)
+        module_path, callable_name = import_path.rsplit('.', 1)
+        return getattr(importlib.import_module(module_path), callable_name)
+
+    def getlist(self, section, key, coerce=str):
+        value = self.get(section, key)
+        return [coerce(v.strip()) for v in value.splitlines() if v.strip()]
+
+
 def load_config(path=None, defaults=None):
     """
     Loads and parses an INI style configuration file using Python's built-in
@@ -36,7 +48,7 @@ def load_config(path=None, defaults=None):
     if defaults is None:
         defaults = DEFAULT_FILES
 
-    config = configparser.ConfigParser(allow_no_value=True)
+    config = ConfigParser(allow_no_value=True)
 
     if defaults:
         config.read(defaults)
