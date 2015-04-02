@@ -8,11 +8,12 @@ from ..helpers import get_issue, get_transition, set_issue_status, get_branch
 
 
 @click.command()
-@click.option('--base', '-b', 'base_branch', help="Branch to make pull request to")
+@click.option('--base', '-b', 'base_branch', 
+              help='Branch to make pull request to.')
 @click.option('-s', '--stop-timer/--no-stop-timer', default=False,
               help='Stops the Harvest timer after creating the pull request.')
 @click.option('-o', '--open-pr/--no-open-pr', default=False,
-              help="Opens the link with the pull request.")
+              help='Opens the link with the pull request.')
 @click.pass_context
 def pull_request(ctx, base_branch, open_pr, stop_timer):
     """Create a new pull request for this issue."""
