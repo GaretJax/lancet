@@ -36,7 +36,7 @@ class WarnIntegrationHelper(NullIntegrationHelper):
             click.secho('  This basically means to add the following snippet')
             click.secho('  to your shell initialization file:')
             click.secho('')
-            click.secho('    lancet --setup-helper | source /dev/stdin')
+            click.secho('    lancet _setup_helper | source /dev/stdin')
             click.secho('')
             click.secho('  See {} for addtional details.'.format(
                 click.style('https://lancet.rtd.org', fg='green')))
