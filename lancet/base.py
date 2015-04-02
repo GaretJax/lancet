@@ -1,6 +1,7 @@
+import sys
+import os
 import shlex
 import click
-import importlib
 
 import keyring
 import github3
@@ -63,9 +64,7 @@ class Lancet:
         self.integration_helper = integration_helper
 
     def get_instance_from_config(self, section, key):
-        import_path = self.config.get(section, key)
-        module_path, callable_name = import_path.rsplit('.', 1)
-        factory = getattr(importlib.import_module(module_path), callable_name)
+        factory = self.config.getclass(section, key)
         return factory(self)
 
     def defer_to_shell(self, *args, **kwargs):
