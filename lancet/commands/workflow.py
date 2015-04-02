@@ -58,7 +58,8 @@ def _project_dirs(lancet):
 
 
 @click.command()
-@click.option('--base', '-b', 'base_branch')
+@click.option('--base', '-b', 'base_branch',
+              help='Base branch to branch off from.')
 @click.argument('issue')
 @click.pass_context
 def workon(ctx, issue, base_branch):
@@ -116,7 +117,8 @@ def time(lancet, issue):
     Start an Harvest timer for the given issue.
 
     This command takes care of linking the timer with the issue tracker page
-    for the given issue.
+    for the given issue. If the issue is not passed to command it's taken 
+    from currently active branch.
     """
     issue = get_issue(lancet, issue)
 

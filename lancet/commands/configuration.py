@@ -57,7 +57,8 @@ def setup(ctx, force):
 
 
 @click.command()
-@click.option('-f', '--force/--no-force', default=False)
+@click.option('-f', '--force/--no-force', default=False,
+              help='Init even if .lancet already exists.')
 @click.pass_context
 def init(ctx, force):
     """Wizard to create a project-level configuration file."""
