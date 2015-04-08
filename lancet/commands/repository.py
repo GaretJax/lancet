@@ -66,7 +66,7 @@ def pull_request(ctx, base_branch, open_pr, stop_timer):
             lancet.config.get('repository', 'pr_template'))
         template = Template(template_content)
         message_template = template.render(issue=issue)
-        message = click.edit(message_template)
+        message = click.edit(message_template, extension='.md')
 
         if not message:
             ts.abort('You didn\'t provide a title for the pull request')
