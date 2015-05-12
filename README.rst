@@ -2,21 +2,29 @@
 LANCET
 ======
 
-.. image:: https://badge.fury.io/py/lancet.png
-   :target: http://badge.fury.io/py/lancet
-
-.. image:: https://pypip.in/d/lancet/badge.png
-   :target: https://crate.io/packages/lancet?version=latest
-
-.. image:: https://travis-ci.org/GaretJax/lancet.png?branch=master
+.. image:: https://img.shields.io/travis/GaretJax/lancet.svg
    :target: https://travis-ci.org/GaretJax/lancet
 
-.. image:: https://readthedocs.org/projects/lancet/badge/?version=latest
+.. image:: https://img.shields.io/pypi/v/lancet.svg
+   :target: https://pypi.python.org/pypi/lancet
+
+.. image:: https://img.shields.io/chocolatey/dt/scriptcs.svg
+   :target: https://pypi.python.org/pypi/lancet
+
+.. image:: https://img.shields.io/coveralls/GaretJax/lancet/develop.svg
+   :target: https://coveralls.io/r/GaretJax/lancet?branch=develop
+
+.. image:: https://img.shields.io/badge/docs-latest-brightgreen.svg
    :target: http://lancet.readthedocs.org/en/latest/
 
-.. image:: https://requires.io/github/GaretJax/lancet/requirements.svg?branch=master
+.. image:: https://img.shields.io/pypi/l/lancet.svg
+   :target: https://github.com/GaretJax/lancet/blob/develop/LICENSE
+
+.. image:: https://img.shields.io/requires/github/GaretJax/lancet.svg
    :target: https://requires.io/github/GaretJax/lancet/requirements/?branch=master
-   :alt: Requirements Status
+
+.. .. image:: https://img.shields.io/codeclimate/github/GaretJax/lancet.svg
+..   :target: https://codeclimate.com/github/GaretJax/lancet
 
 From http://en.wikipedia.org/wiki/Scalpel:
 

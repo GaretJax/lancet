@@ -23,3 +23,5 @@ Creating a release
 * Push everything to github::
 
      git push --tags origin master
+
+* Add the title for the next release to `HISTORY.rst`

@@ -3,7 +3,7 @@ History
 =======
 
 
-0.7.2 - Unreleased
+0.7.2 - 2015-05-13
 ==================
 
 * Update to libgit 0.22 (requires updated of the shared library).
