@@ -8,7 +8,7 @@ include lancet/default-settings.ini
 include lancet/helper.sh
 include entry-points.ini
 graft lancet/templates
-graft lancet/autocompletion
+graft lancet/autocomplete
 
 include requirements-dev.txt
 include requirements-test.txt
