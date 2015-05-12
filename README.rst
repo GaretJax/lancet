@@ -8,7 +8,7 @@ LANCET
 .. image:: https://img.shields.io/pypi/v/lancet.svg
    :target: https://pypi.python.org/pypi/lancet
 
-.. image:: https://img.shields.io/chocolatey/dt/scriptcs.svg
+.. image:: https://img.shields.io/pypi/dm/lancet.svg
    :target: https://pypi.python.org/pypi/lancet
 
 .. image:: https://img.shields.io/coveralls/GaretJax/lancet/develop.svg
