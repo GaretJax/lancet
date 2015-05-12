@@ -1,5 +1,5 @@
 from jira.client import GreenHopper  # NOQA
-from jira.exceptions import JIRAError
+from jira import JIRAError  # NOQA
 
 from requests.cookies import RequestsCookieJar
 
