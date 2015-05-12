@@ -8,10 +8,12 @@ from ..helpers import get_issue, get_transition, set_issue_status, get_branch
 
 
 @click.command()
-@click.option('--base', '-b', 'base_branch')
+@click.option('--base', '-b', 'base_branch', 
+              help='Branch to make pull request to.')
 @click.option('-s', '--stop-timer/--no-stop-timer', default=False,
-              help='Stop the Harvest timer after creating the pull request.')
-@click.option('-o', '--open-pr/--no-open-pr', default=False)
+              help='Stops the Harvest timer after creating the pull request.')
+@click.option('-o', '--open-pr/--no-open-pr', default=False,
+              help='Opens the link with the pull request.')
 @click.pass_context
 def pull_request(ctx, base_branch, open_pr, stop_timer):
     """Create a new pull request for this issue."""
@@ -64,7 +66,7 @@ def pull_request(ctx, base_branch, open_pr, stop_timer):
             lancet.config.get('repository', 'pr_template'))
         template = Template(template_content)
         message_template = template.render(issue=issue)
-        message = click.edit(message_template)
+        message = click.edit(message_template, extension='.md')
 
         if not message:
             ts.abort('You didn\'t provide a title for the pull request')
