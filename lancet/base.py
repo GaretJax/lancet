@@ -1,10 +1,9 @@
-import sys
-import os
 import shlex
 import click
 
 import keyring
 import github3
+from giturlparse import parse as giturlparse
 
 from . import __url__, harvest
 from .jira import JIRA, JIRAError
@@ -169,6 +168,13 @@ class Lancet:
         gh = github3.login(token=token)
         self.call_on_close(gh._session.close)
         return gh
+
+    @cached_property
+    def github_repo(self):
+        remote_name = self.config.get('repository', 'remote_name')
+        remote = self.repo.lookup_remote(remote_name)
+        p = giturlparse(remote.url)
+        return self.github.repository(p.owner, p.repo)
 
     @cached_property
     def tracker(self):

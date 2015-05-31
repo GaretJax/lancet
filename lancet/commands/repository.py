@@ -8,7 +8,7 @@ from ..helpers import get_issue, get_transition, set_issue_status, get_branch
 
 
 @click.command()
-@click.option('--base', '-b', 'base_branch', 
+@click.option('--base', '-b', 'base_branch',
               help='Branch to make pull request to.')
 @click.option('-s', '--stop-timer/--no-stop-timer', default=False,
               help='Stops the Harvest timer after creating the pull request.')
