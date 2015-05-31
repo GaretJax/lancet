@@ -18,7 +18,7 @@ Creating a release
 
 * Build and upload the release::
 
-     python setup.py sdist bdist_wheel upload
+     python setup.py sdist publish
 
 * Push everything to github::
 
