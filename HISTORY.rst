@@ -3,10 +3,12 @@ History
 =======
 
 
-0.7.3 - UNreleased
+0.7.3 - 2015-05-31
 ==================
 
 * Update requirements
+* Allow to specify the path to the deployment spec in the settings
+* Add some packaging tools to the contrib commmands
 
 
 0.7.2 - 2015-05-13
