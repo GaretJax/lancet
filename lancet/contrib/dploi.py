@@ -20,7 +20,7 @@ def ssh(lancet, print_cmd, environment):
 
     config = namespace['settings'][environment]
     host = '{}@{}'.format(config['user'], config['hosts'][0])
-    cmd = ['ssh', '-p', str(config.get('port', 20)), host]
+    cmd = ['ssh', '-p', str(config.get('port', 22)), host]
 
     if print_cmd:
         click.echo(' '.join(quote(s) for s in cmd))
