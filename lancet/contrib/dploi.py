@@ -14,7 +14,7 @@ def ssh(lancet, print_cmd, environment):
     """
     namespace = {}
 
-    with open('deployment.py') as fh:
+    with open(lancet.config.get('dploi', 'deployment_spec')) as fh:
         code = compile(fh.read(), 'deployment.py', 'exec')
         exec(code, {}, namespace)
 
