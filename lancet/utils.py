@@ -2,7 +2,9 @@ import os
 import functools
 import sys
 import curses
+
 import click
+from jinja2 import Template
 
 from pkg_resources import resource_string
 
@@ -108,3 +110,18 @@ def content_from_path(path, encoding='utf-8'):
             content = fh.read()
 
     return content.decode(encoding)
+
+
+def render_resource(resource_path, **context):
+    template_content = content_from_path(resource_path)
+    template = Template(template_content)
+    return template.render(**context)
+
+
+def edit_template(template_resource, **context):
+    try:
+        extension = template_resource.rsplit('.', 1)[1]
+    except IndexError:
+        extension = None
+    rendered_content = render_resource(template_resource, **context)
+    return click.edit(rendered_content, extension=extension)
