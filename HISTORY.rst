@@ -3,8 +3,12 @@ History
 =======
 
 
-0.7.4 - Unreleased
+0.7.4 - 2015-06-04
 ==================
+
+* Update requirements
+* Add a command to manage release notes
+* Improve the contribution guidelines
 
 
 0.7.3 - 2015-05-31
