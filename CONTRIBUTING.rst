@@ -16,13 +16,13 @@ Creating a release
      lancet contributors AUTHORS.rst
 
 * Commit everything and make sure the working tree is clean.
+* Build and upload the release::
+
+     ./setup.py publish
+
 * Tag the release::
 
      lancet tagver 
-
-* Build and upload the release::
-
-     python setup.py sdist publish
 
 * Push everything to github::
 

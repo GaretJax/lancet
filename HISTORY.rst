@@ -3,6 +3,12 @@ History
 =======
 
 
+0.7.5 - Unreleased
+==================
+
+* Improve the contribution guidelines
+
+
 0.7.4 - 2015-06-04
 ==================
 
