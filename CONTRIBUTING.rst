@@ -11,10 +11,14 @@ Creating a release
 * Make sure ``check-manifest`` is happy.
 * Increment the version number.
 * Set the correct title for the release in ``HISTORY.rst``.
+* Update the ``AUTHORS.rst`` file with new contributors::
+
+     lancet contributors AUTHORS.rst
+
 * Commit everything and make sure the working tree is clean.
 * Tag the release::
 
-     git tag -a "v$(python setup.py --version)" -m "$(python setup.py --name) release version $(python setup.py --version)"
+     lancet tagver 
 
 * Build and upload the release::
 
