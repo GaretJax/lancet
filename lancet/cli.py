@@ -23,6 +23,16 @@ from .utils import hr
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
+def get_sentry_client(sentry_dsn):
+    return raven.Client(
+        sentry_dsn,
+        release=__version__,
+        processors=(
+            'raven.processors.SanitizePasswordsProcessor',
+        )
+    )
+
+
 class SubprocessExecuter(click.BaseCommand):
     def parse_args(self, ctx, args):
         ctx.args = args
@@ -182,6 +192,10 @@ def main(ctx, debug):
     else:
         config = load_config()
 
+    ctx.obj = Lancet(config, integration_helper)
+    ctx.obj.call_on_close = ctx.call_on_close
+    ctx.call_on_close(integration_helper.close)
+
     sentry_dsn = config.get('lancet', 'sentry_dsn')
     if not debug and sentry_dsn:
         if not raven:
@@ -189,7 +203,7 @@ def main(ctx, debug):
                         'not installed. Sentry logging will not be enabled.',
                         fg='yellow')
         else:
-            sentry_client = raven.Client(sentry_dsn)
+            sentry_client = get_sentry_client(sentry_dsn)
 
             def exception_handler(type, value, traceback):
                 settings_diff = diff_config(
@@ -212,14 +226,11 @@ def main(ctx, debug):
                     (type, value, traceback),
                     extra={
                         'settings': as_dict(settings_diff),
+                        'working_dir': os.getcwd(),
                     },
                 )[0]
                 click.secho('\n    {}\n'.format(error_id), fg='yellow')
             sys.excepthook = exception_handler
-
-    ctx.obj = Lancet(config, integration_helper)
-    ctx.obj.call_on_close = ctx.call_on_close
-    ctx.call_on_close(integration_helper.close)
 
 
 @main.command()
