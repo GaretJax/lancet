@@ -17,3 +17,4 @@ uritemplate.py==0.3.0
 giturlparse.py==0.0.5
 Jinja2==2.7.3
 MarkupSafe==0.23
+raven<5.2

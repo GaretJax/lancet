@@ -5,6 +5,7 @@ Configuration management for the different components.
 import os
 import configparser
 import importlib
+from collections import defaultdict
 
 
 PACKAGE = 'lancet'
@@ -58,3 +59,38 @@ def load_config(path=None, defaults=None):
             config.read_file(fh)
 
     return config
+
+
+def diff_config(base, ref, exclude=None):
+    diff = ConfigParser()
+
+    if exclude is None:
+        exclude = set()
+
+    for section in ref.sections():
+        for option in ref.options(section):
+            if (section, option) in exclude:
+                continue
+            value = ref.get(section, option)
+            if base.has_option(section, option):
+                if base.get(section, option) == value:
+                    continue
+            if not diff.has_section(section):
+                diff.add_section(section)
+            diff.set(section, option, value)
+
+    return diff
+
+
+def as_dict(config):
+    """
+    Converts a ConfigParser object into a dictionary.
+
+    The resulting dictionary has sections as keys which point to a dict of the
+    sections options as key => value pairs.
+    """
+    settings = defaultdict(lambda: {})
+    for section in config.sections():
+        for key, val in config.items(section):
+            settings[section][key] = val
+    return settings

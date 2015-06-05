@@ -8,8 +8,14 @@ import subprocess
 import click
 from click.utils import make_str
 
+try:
+    import raven
+except ImportError:
+    raven = None
+
 from . import __version__
-from .settings import load_config, PROJECT_CONFIG
+from .settings import load_config, diff_config, as_dict
+from .settings import PROJECT_CONFIG, DEFAULT_CONFIG
 from .base import Lancet, WarnIntegrationHelper, ShellIntegrationHelper
 from .utils import hr
 
@@ -175,6 +181,41 @@ def main(ctx, debug):
         config = load_config(PROJECT_CONFIG)
     else:
         config = load_config()
+
+    sentry_dsn = config.get('lancet', 'sentry_dsn')
+    if not debug and sentry_dsn:
+        if not raven:
+            click.secho('You provided a Sentry DSN but the raven module is '
+                        'not installed. Sentry logging will not be enabled.',
+                        fg='yellow')
+        else:
+            sentry_client = raven.Client(sentry_dsn)
+
+            def exception_handler(type, value, traceback):
+                settings_diff = diff_config(
+                    load_config(DEFAULT_CONFIG, defaults=False),
+                    config,
+                    exclude=set([
+                        ('lancet', 'sentry_dsn'),
+                    ])
+                )
+
+                sys.__excepthook__(type, value, traceback)
+                click.echo()
+                hr(fg='yellow')
+
+                click.secho('\nAs requested, I am sending details about this '
+                            'error to Sentry, please report the following ID '
+                            'when seeking support:')
+
+                error_id = sentry_client.captureException(
+                    (type, value, traceback),
+                    extra={
+                        'settings': as_dict(settings_diff),
+                    },
+                )[0]
+                click.secho('\n    {}\n'.format(error_id), fg='yellow')
+            sys.excepthook = exception_handler
 
     ctx.obj = Lancet(config, integration_helper)
     ctx.obj.call_on_close = ctx.call_on_close
