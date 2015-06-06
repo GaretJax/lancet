@@ -22,7 +22,7 @@ Creating a release
 
 * Tag the release::
 
-     lancet tagver 
+     lancet tagver
 
 * Push everything to github::
 

@@ -1,6 +1,5 @@
 import click
 
-from lancet.helpers import get_issue
 from lancet.utils import taskstatus, edit_template
 
 

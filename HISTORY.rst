@@ -3,10 +3,11 @@ History
 =======
 
 
-0.7.5 - Unreleased
+0.7.5 - 2015-06-06
 ==================
 
 * Improve the contribution guidelines
+* Add Sentry logging for exceptions
 
 
 0.7.4 - 2015-06-04
