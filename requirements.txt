@@ -1,10 +1,10 @@
-cffi==1.1.1
+cffi==1.1.2
 click==4.0
 gnureadline==6.3.3
 jira==0.47
 keyring==5.3
 oauthlib==0.7.2
-pycparser==2.13
+pycparser==2.14
 pygit2==0.22.0
 python-slugify==1.1.2
 requests-oauthlib==0.5.0
