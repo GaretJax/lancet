@@ -1,5 +1,6 @@
 import os
 import sys
+import bdb
 import pdb
 import importlib
 import shlex
@@ -21,6 +22,9 @@ from .utils import hr
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+IGNORED_EXCEPTIONS = set([
+    bdb.BdbQuit,
+])
 
 
 def get_sentry_client(sentry_dsn):
@@ -197,7 +201,7 @@ def main(ctx, debug):
     ctx.call_on_close(integration_helper.close)
 
     sentry_dsn = config.get('lancet', 'sentry_dsn')
-    if not debug and sentry_dsn:
+    if sentry_dsn and not debug:
         if not raven:
             click.secho('You provided a Sentry DSN but the raven module is '
                         'not installed. Sentry logging will not be enabled.',
@@ -215,6 +219,10 @@ def main(ctx, debug):
                 )
 
                 sys.__excepthook__(type, value, traceback)
+
+                if type in IGNORED_EXCEPTIONS:
+                    return
+
                 click.echo()
                 hr(fg='yellow')
 

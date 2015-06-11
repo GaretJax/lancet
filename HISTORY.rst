@@ -6,6 +6,10 @@ History
 0.7.6 - Unreleased
 ==================
 
+* Add a command to list versions
+* Update dependencies
+* Don't report ``bdb.BdbQuit`` exceptions to Sentry
+
 
 0.7.5 - 2015-06-06
 ==================

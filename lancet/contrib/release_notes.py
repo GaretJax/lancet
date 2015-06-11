@@ -1,5 +1,7 @@
 import click
 
+from tabulate import tabulate
+
 from lancet.utils import taskstatus, edit_template
 
 
@@ -18,6 +20,25 @@ def get_version(lancet, project_key, version_name):
 def get_issues_fixed_in_version(lancet, project_key, version_name):
     return lancet.tracker.search_issues(VERSION_FILTER_QUERY.format(
         project_key=project_key, version_name=version_name))
+
+
+@click.command()
+@click.pass_obj
+def list_versions(lancet):
+    project_key = lancet.config.get('tracker', 'default_project')
+
+    project = lancet.tracker.project(project_key)
+    versions = lancet.tracker.project_versions(project)
+
+    table = [(
+        (click.style(' ✓', fg='green') if v.released
+         else click.style(' •', 'yellow')),
+        v.name,
+        v.description,
+    ) for v in reversed(versions)]
+
+    headers = ['Rel', 'Name', 'Description']
+    click.echo(tabulate(table, headers, tablefmt='simple'))
 
 
 @click.command()
