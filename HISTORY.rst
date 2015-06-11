@@ -3,7 +3,7 @@ History
 =======
 
 
-0.7.6 - Unreleased
+0.7.6 - 2015-06-11
 ==================
 
 * Add a command to list versions
