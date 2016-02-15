@@ -12,7 +12,7 @@ requests==2.9.1
 six==1.10.0
 tlslite==0.4.9
 Unidecode==0.04.19
-github3.py==0.9.4
+github3.py==0.9.5
 uritemplate.py==0.3.0
 giturlparse.py==0.0.5
 Jinja2==2.8
