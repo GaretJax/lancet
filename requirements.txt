@@ -1,5 +1,5 @@
 cffi==1.5.2
-click==6.2
+click==6.3
 gnureadline==6.3.3
 jira==1.0.3
 keyring==8.4.1
