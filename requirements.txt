@@ -2,7 +2,7 @@ cffi==1.5.2
 click==6.4
 gnureadline==6.3.3
 jira==1.0.3
-keyring==8.5.1
+keyring==8.6
 oauthlib==1.0.3
 pycparser==2.14
 pygit2==0.24.0
