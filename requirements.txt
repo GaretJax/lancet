@@ -1,4 +1,4 @@
-cffi==1.5.2
+cffi==1.6.0
 click==6.6
 gnureadline==6.3.3
 jira==1.0.3
