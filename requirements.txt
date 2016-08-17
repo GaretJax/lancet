@@ -8,12 +8,12 @@ pycparser==2.14
 pygit2==0.24.1
 python-slugify==1.2.0
 requests-oauthlib==0.6.2
-requests==2.11.0
+requests==2.11.1
 six==1.10.0
 tlslite==0.4.9
 Unidecode==0.04.19
 github3.py==0.9.5
-uritemplate.py==0.3.0
+uritemplate.py==1.0.0
 giturlparse.py==0.0.5
 Jinja2==2.8
 MarkupSafe==0.23
