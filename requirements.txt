@@ -13,7 +13,7 @@ six==1.10.0
 tlslite==0.4.9
 Unidecode==0.04.19
 github3.py==0.9.5
-uritemplate.py==1.0.0
+uritemplate.py==1.0.1
 giturlparse.py==0.0.5
 Jinja2==2.8
 MarkupSafe==0.23
