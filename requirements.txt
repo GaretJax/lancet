@@ -7,7 +7,7 @@ oauthlib==2.0.0
 pycparser==2.14
 pygit2==0.24.1
 python-slugify==1.2.1
-requests-oauthlib==0.6.2
+requests-oauthlib==0.7.0
 requests==2.11.1
 six==1.10.0
 tlslite==0.4.9
