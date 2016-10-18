@@ -4,7 +4,7 @@ gnureadline==6.3.3
 jira==1.0.7
 keyring==9.3.1
 oauthlib==2.0.0
-pycparser==2.14
+pycparser==2.15
 pygit2==0.24.1
 python-slugify==1.2.1
 requests-oauthlib==0.7.0
