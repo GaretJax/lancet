@@ -15,7 +15,7 @@ Unidecode==0.04.20
 github3.py==0.9.6
 uritemplate.py==3.0.2
 giturlparse.py==0.0.5
-Jinja2==2.9.4
+Jinja2==2.9.5
 MarkupSafe==0.23
 raven<5.2
 tabulate==0.7.7
