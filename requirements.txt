@@ -6,7 +6,7 @@ keyring==10.3.2
 oauthlib==2.0.2
 pycparser==2.17
 pygit2==0.25.0
-python-slugify==1.2.2
+python-slugify==1.2.3
 requests-oauthlib==0.8.0
 requests==2.13.0
 six==1.10.0
