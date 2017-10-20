@@ -1,6 +1,6 @@
 cffi==1.11.2
 click==6.7
-gnureadline==6.3.3
+gnureadline==6.3.8
 jira==1.0.10
 keyring==10.4.0
 oauthlib==2.0.6
