@@ -3,7 +3,7 @@ click==6.7
 gnureadline==6.3.8
 jira==1.0.14
 keyring==11.0.0
-oauthlib==2.0.6
+oauthlib==2.0.7
 pycparser==2.18
 pygit2==0.26.3
 python-slugify==1.2.4
