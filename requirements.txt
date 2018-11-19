@@ -11,7 +11,7 @@ requests-oauthlib==1.0.0
 requests==2.20.1
 six==1.11.0
 tlslite==0.4.9
-Unidecode==1.0.22
+Unidecode==1.0.23
 github3.py==1.2.0
 uritemplate.py==3.0.2
 giturlparse.py==0.0.5
