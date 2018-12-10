@@ -9,7 +9,7 @@ pygit2==0.27.2
 python-slugify==1.2.6
 requests-oauthlib==1.0.0
 requests==2.20.1
-six==1.11.0
+six==1.12.0
 tlslite==0.4.9
 Unidecode==1.0.23
 github3.py==1.2.0
