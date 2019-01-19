@@ -5,7 +5,7 @@ jira==2.0.0
 keyring==17.1.1
 oauthlib==3.0.0
 pycparser==2.19
-pygit2==0.27.3
+pygit2==0.27.4
 python-slugify==2.0.1
 requests-oauthlib==1.2.0
 requests==2.21.0
