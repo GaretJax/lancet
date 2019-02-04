@@ -169,7 +169,7 @@ class BranchGetter:
                     if not base:
                         ts.abort('Base branch "{}" not found on remote "{}"',
                                  self.base_branch, self.remote_name)
-                    branch = repo.create_branch(full_name, base.get_object())
+                    branch = repo.create_branch(full_name, base.peel())
                     ts.ok('Created new working branch')
 
         return branch
