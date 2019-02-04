@@ -1,4 +1,5 @@
 click
+attrs
 jira
 keyring
 keyrings.alt
