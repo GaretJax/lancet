@@ -41,15 +41,6 @@ def projects(lancet, query):
 @click.pass_obj
 def tasks(lancet, project_id):
     """List Harvest tasks for the given project ID."""
-    projects = lancet.timer.projects()
-
-    for project in projects:
-        if project['id'] == project_id:
-            click.echo('{:>9d} {} {}'.format(
-                project['id'], click.style('‣', fg='yellow'), project['name']))
-            hr()
-
-            for task in project['tasks']:
-                click.echo('{:>9d} {} {}'.format(
-                    task['id'], click.style('‣', fg='yellow'), task['name']))
-            break
+    for task in lancet.timer.tasks(project_id):
+        click.echo('{:>9d} {} {}'.format(
+            task['id'], click.style('‣', fg='yellow'), task['name']))

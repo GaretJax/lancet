@@ -23,8 +23,8 @@ class PrefixedIDBranchName:
         raise Exception('Unable to find current issue.')
 
     def __call__(self, issue):
-        discriminator = '{}{}_'.format(self.get_prefix(issue), issue.key)
-        slug = slugify(issue.fields.summary[:self.slug_length])
+        discriminator = '{}{}_'.format(self.get_prefix(issue), issue.id)
+        slug = slugify(issue.summary[:self.slug_length])
         full_name = '{}{}'.format(discriminator, slug)
         return discriminator, full_name
 
@@ -43,13 +43,23 @@ class FixedPrefixIDBranchName(PrefixedIDBranchName):
         return match.group(1)
 
 
+class CredentialsCallbacks(pygit2.RemoteCallbacks):
+    def credentials(self, url, username_from_url, allowed_types):
+        if allowed_types & pygit2.credentials.GIT_CREDTYPE_USERNAME:
+            raise NotImplementedError
+        elif allowed_types & pygit2.credentials.GIT_CREDTYPE_SSH_KEY:
+            return pygit2.KeypairFromAgent(username_from_url)
+        else:
+            return None
+
+
 class TaskTypePrefixIDBranchName(PrefixedIDBranchName):
     def __init__(self, prefixes):
         self._prefixes = prefixes
 
     def get_prefix(self, issue):
         try:
-            return self._prefixes[str(issue.fields.issuetype)]
+            return self._prefixes[str(issue.type)]
         except KeyError:
             pass
 
@@ -84,11 +94,10 @@ def prefixed_id_branch_name(lancet):
 
 
 class BranchGetter:
-    def __init__(self, base_branch, remote_credentials, branch_name_getter,
+    def __init__(self, base_branch, branch_name_getter,
                  remote_name='origin'):
         self.base_branch = base_branch
         self.remote_name = remote_name
-        self.remote_credentials = remote_credentials
         self.get_branch_name = branch_name_getter
 
     def get_base_branch(self, repo):
@@ -142,8 +151,7 @@ class BranchGetter:
                 if not remote:
                     ts.abort('Remote "{}" not found', self.remote_name)
 
-                remote.credentials = self.remote_credentials
-                remote.fetch()
+                remote.fetch(callbacks=CredentialsCallbacks())
                 ts.ok('Fetched latest changes from "{}"', self.remote_name)
 
             # Check remote branches
@@ -175,33 +183,12 @@ class Repository(pygit2.Repository):
         if not remote:
             return
         p = giturlparse(remote.url)
-        remote_username = p._user
+        remote_username = p.user
 
         if p.protocol == 'ssh':
             credentials = pygit2.KeypairFromAgent(remote_username)
         elif p.protocol == 'https':
-            # TODO: What if this fails? (platform, pwd not stored,...)
-            try:
-                import subprocess
-                out = subprocess.check_output([
-                    'security', 'find-internet-password',
-                    '-r', 'htps',
-                    '-s', p.domain,
-                    '-p', '',
-                    '-g',
-                ], stderr=subprocess.STDOUT)
-
-                username = re.search(rb'"acct"<blob>="([^"]+)"', out)
-                username = username.group(1)
-
-                password = re.search(rb'password: "([^"]+)"', out)
-                password = password.group(1)
-
-                if password == TOKEN_USER:
-                    username, password = password, username
-            except:
-                raise NotImplementedError('No authentication support.')
-
-            credentials = pygit2.UserPass(username, password)
+            raise NotImplementedError('No authentication support.')
+            # credentials = pygit2.UserPass(username, password)
 
         return credentials

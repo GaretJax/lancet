@@ -9,60 +9,65 @@ from ..helpers import get_branch, get_project_keys, get_project_dirs
 
 
 @click.command()
-@click.option('-k', '--key', 'method', flag_value='key', default=True)
-@click.option('-d', '--dir', 'method', flag_value='dir')
-@click.argument('project')
+@click.option("-k", "--key", "method", flag_value="key", default=True)
+@click.option("-d", "--dir", "method", flag_value="dir")
+@click.argument("project")
 @click.pass_obj
 def activate(lancet, method, project):
     """Switch to this project."""
-    with taskstatus('Looking up project') as ts:
-        if method == 'key':
+    with taskstatus("Looking up project") as ts:
+        if method == "key":
             func = get_project_keys
-        elif method == 'dir':
+        elif method == "dir":
             func = get_project_keys
 
         for key, project_path in func(lancet):
             if key.lower() == project.lower():
                 break
         else:
-            ts.abort('Project "{}" not found (using {}-based lookup)',
-                     project, method)
+            ts.abort(
+                'Project "{}" not found (using {}-based lookup)',
+                project,
+                method,
+            )
 
     # Load the configuration
     config = load_config(os.path.join(project_path, LOCAL_CONFIG))
 
     # cd to the project directory
-    lancet.defer_to_shell('cd', project_path)
+    lancet.defer_to_shell("cd", project_path)
 
     # Activate virtualenv
-    venv = config.get('lancet', 'virtualenv', fallback=None)
+    venv = config.get("lancet", "virtualenv", fallback=None)
     if venv:
         venv_path = os.path.join(project_path, os.path.expanduser(venv))
-        activate_script = os.path.join(venv_path, 'bin', 'activate')
-        lancet.defer_to_shell('source', activate_script)
+        activate_script = os.path.join(venv_path, "bin", "activate")
+        lancet.defer_to_shell("source", activate_script)
     else:
-        if 'VIRTUAL_ENV' in os.environ:
-            lancet.defer_to_shell('deactivate')
+        if "VIRTUAL_ENV" in os.environ:
+            lancet.defer_to_shell("deactivate")
 
 
 @click.command()
 @click.pass_obj
 def _project_keys(lancet):
-    click.echo('\n'.join(k.lower() for k, p in get_project_keys(lancet)))
+    click.echo("\n".join(k.lower() for k, p in get_project_keys(lancet)))
 
 
 @click.command()
 @click.pass_obj
 def _project_dirs(lancet):
-    click.echo('\n'.join(d.lower() for d, p in get_project_dirs(lancet)))
+    click.echo("\n".join(d.lower() for d, p in get_project_dirs(lancet)))
 
 
 @click.command()
-@click.option('--base', '-b', 'base_branch',
-              help='Base branch to branch off from.')
-@click.argument('issue')
+@click.option("--new", "-n", is_flag=True)
+@click.option(
+    "--base", "-b", "base_branch", help="Base branch to branch off from."
+)
+@click.argument("issue_id", required=False)
 @click.pass_context
-def workon(ctx, issue, base_branch):
+def workon(ctx, issue_id, new, base_branch):
     """
     Start work on a given issue.
 
@@ -80,13 +85,28 @@ def workon(ctx, issue, base_branch):
     """
     lancet = ctx.obj
 
-    username = lancet.config.get('tracker', 'username')
-    active_status = lancet.config.get('tracker', 'active_status')
-    if not base_branch:
-        base_branch = lancet.config.get('repository', 'base_branch')
+    if not issue_id and not new:
+        raise click.UsageError("Provide either an issue ID or the --new flag.")
+    elif issue_id and new:
+        raise click.UsageError(
+            "Provide either an issue ID or the --new flag, but not both."
+        )
 
-    # Get the issue
-    issue = get_issue(lancet, issue)
+    project_id = lancet.config.get("tracker", "project_id")
+
+    if new:
+        # Create a new issue
+        summary = click.prompt("Issue summary")
+        issue = lancet.tracker.create_issue(
+            project_id=project_id, summary=summary, add_to_active_sprint=True,
+        )
+    else:
+        issue = lancet.tracker.get_issue(project_id, issue_id)
+
+    username = lancet.tracker.whoami()
+    active_status = lancet.config.get("tracker", "active_status")
+    if not base_branch:
+        base_branch = lancet.config.get("repository", "base_branch")
 
     # Get the working branch
     branch = get_branch(lancet, issue, base_branch)
@@ -100,17 +120,17 @@ def workon(ctx, issue, base_branch):
     # Activate environment
     set_issue_status(lancet, issue, active_status, transition)
 
-    with taskstatus('Checking out working branch') as ts:
+    with taskstatus("Checking out working branch") as ts:
         lancet.repo.checkout(branch.name)
         ts.ok('Checked out working branch based on "{}"'.format(base_branch))
 
-    with taskstatus('Starting harvest timer') as ts:
+    with taskstatus("Starting harvest timer") as ts:
         lancet.timer.start(issue)
-        ts.ok('Started harvest timer')
+        ts.ok("Started harvest timer")
 
 
 @click.command()
-@click.argument('issue', required=False)
+@click.argument("issue", required=False)
 @click.pass_obj
 def time(lancet, issue):
     """
@@ -122,9 +142,9 @@ def time(lancet, issue):
     """
     issue = get_issue(lancet, issue)
 
-    with taskstatus('Starting harvest timer') as ts:
+    with taskstatus("Starting harvest timer") as ts:
         lancet.timer.start(issue)
-        ts.ok('Started harvest timer')
+        ts.ok("Started harvest timer")
 
 
 @click.command()
@@ -137,7 +157,7 @@ def pause(ctx):
     current Harvest timer.
     """
     lancet = ctx.obj
-    paused_status = lancet.config.get('tracker', 'paused_status')
+    paused_status = lancet.config.get("tracker", "paused_status")
 
     # Get the issue
     issue = get_issue(lancet)
@@ -148,9 +168,9 @@ def pause(ctx):
     # Activate environment
     set_issue_status(lancet, issue, paused_status, transition)
 
-    with taskstatus('Pausing harvest timer') as ts:
+    with taskstatus("Pausing harvest timer") as ts:
         lancet.timer.pause()
-        ts.ok('Harvest timer paused')
+        ts.ok("Harvest timer paused")
 
 
 @click.command()
@@ -163,8 +183,8 @@ def resume(ctx):
     """
     lancet = ctx.obj
 
-    username = lancet.config.get('tracker', 'username')
-    active_status = lancet.config.get('tracker', 'active_status')
+    username = lancet.tracker.whoami()
+    active_status = lancet.config.get("tracker", "active_status")
 
     # Get the issue
     issue = get_issue(lancet)
@@ -178,6 +198,6 @@ def resume(ctx):
     # Activate environment
     set_issue_status(lancet, issue, active_status, transition)
 
-    with taskstatus('Resuming harvest timer') as ts:
+    with taskstatus("Resuming harvest timer") as ts:
         lancet.timer.start(issue)
-        ts.ok('Resumed harvest timer')
+        ts.ok("Resumed harvest timer")
