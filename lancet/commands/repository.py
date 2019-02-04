@@ -45,8 +45,7 @@ def pull_request(ctx, base_branch, open_pr, stop_timer):
         if not branch:
             ts.abort("No working branch found")
 
-        assignees = issue.assignees
-        if lancet.tracker.whoami() not in assignees:
+        if lancet.tracker.whoami() not in issue.assignees:
             ts.abort("Issue currently not assigned to you")
 
         # TODO: Check mergeability

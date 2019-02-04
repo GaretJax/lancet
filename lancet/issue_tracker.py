@@ -121,7 +121,7 @@ class JIRAIssue(Issue):
     @property
     def assignees(self):
         if self.issue.fields.assignee:
-            return [self.issue.fields.assignee.key]
+            return [self.issue.fields.assignee.name]
         else:
             return []
 
