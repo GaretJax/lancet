@@ -62,6 +62,21 @@ def set_issue_status(lancet, issue, to_status, transition):
             ts.ok('Issue already "{}"'.format(to_status))
 
 
+def create_issue(
+    lancet, summary, *, project_id=None, add_to_active_sprint=False
+):
+    with taskstatus("Creating issue") as ts:
+        if project_id is None:
+            project_id = lancet.config.get("tracker", "project_id")
+        issue = lancet.tracker.create_issue(
+            project_id=project_id,
+            summary=summary,
+            add_to_active_sprint=add_to_active_sprint,
+        )
+        ts.ok(f"Created issue {issue.id}")
+    return issue
+
+
 def assign_issue(lancet, issue, username, active_status=None):
     with taskstatus("Assigning issue to you") as ts:
         if not issue.assignees or username not in issue.assignees:

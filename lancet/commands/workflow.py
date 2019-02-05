@@ -4,8 +4,16 @@ import click
 
 from ..settings import LOCAL_CONFIG, load_config
 from ..utils import taskstatus
-from ..helpers import get_issue, get_transition, set_issue_status, assign_issue
-from ..helpers import get_branch, get_project_keys, get_project_dirs
+from ..helpers import (
+    get_issue,
+    get_transition,
+    set_issue_status,
+    assign_issue,
+    get_branch,
+    get_project_keys,
+    get_project_dirs,
+    create_issue,
+)
 
 
 @click.command()
@@ -92,16 +100,14 @@ def workon(ctx, issue_id, new, base_branch):
             "Provide either an issue ID or the --new flag, but not both."
         )
 
-    project_id = lancet.config.get("tracker", "project_id")
-
     if new:
         # Create a new issue
         summary = click.prompt("Issue summary")
-        issue = lancet.tracker.create_issue(
-            project_id=project_id, summary=summary, add_to_active_sprint=True,
+        issue = create_issue(
+            lancet, summary=summary, add_to_active_sprint=True
         )
     else:
-        issue = lancet.tracker.get_issue(project_id, issue_id)
+        issue = get_issue(lancet, issue_id)
 
     username = lancet.tracker.whoami()
     active_status = lancet.config.get("tracker", "active_status")
