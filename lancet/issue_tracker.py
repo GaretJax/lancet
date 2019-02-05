@@ -81,6 +81,9 @@ class JIRATracker(Tracker):
         return JIRAIssue(self, issue)
 
     def get_issue(self, project_id, issue_id):
+        if not issue_id.startswith(project_id + '-'):
+            assert "-" not in issue_id
+            issue_id = f"{project_id}-{issue_id}"
         return JIRAIssue(self, self.api.issue(issue_id))
 
     def whoami(self):
