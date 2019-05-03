@@ -73,7 +73,7 @@ class TaskTypePrefixIDBranchName(PrefixedIDBranchName):
 
     def get_issue_key(self, branch_name):
         for prefix in six.itervalues(self._prefixes):
-            match = re.search(prefix + r'([A-Z]{2,}-[0-9]+)', branch_name)
+            match = re.search(prefix + r'((?:[A-Z]{2,}-)?[0-9]+)', branch_name)
             if match is not None:
                 return match.group(1)
         else:

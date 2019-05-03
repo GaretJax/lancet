@@ -1,3 +1,5 @@
+import datetime
+
 import attr
 
 from .utils import cached_property
@@ -12,10 +14,12 @@ def notimplementedproperty():
 
 
 class Tracker:
-    def create_issue(self, title):
+    def create_issue(
+        self, project_id, summary, add_to_active_sprint=False, issue_type=None
+    ):
         raise NotImplementedError
 
-    def get_issue(self, issue_id):
+    def get_issue(self, project_id, issue_id):
         raise NotImplementedError
 
     def whoami(self):
@@ -53,9 +57,158 @@ class Issue:
         raise NotImplementedError
 
 
-@attr.s
+@attr.s(cmp=False)
 class GitlabTracker(Tracker):
     api = attr.ib()
+    group_id = attr.ib()
+
+    def create_issue(
+        self, project_id, summary, add_to_active_sprint=False, issue_type=None
+    ):
+        project = self.api.projects.get(project_id, lazy=True)
+        group = self.api.groups.get(self.group_id, lazy=True)
+
+        def is_current(milestone):
+            return (
+                datetime.date.fromisoformat(milestone.start_date)
+                <= datetime.date.today()
+                <= datetime.date.fromisoformat(milestone.due_date)
+            )
+
+        if add_to_active_sprint:
+            step = "dev"
+            milestone = min(
+                (
+                    m
+                    for m in group.milestones.list(state="active")
+                    if is_current(m)
+                ),
+                key=lambda m: datetime.date.fromisoformat(m.start_date),
+                default=None,
+            )
+        else:
+            step = "backlog"
+            milestone = None
+
+        if issue_type is None:
+            issue_type = "enhancement"
+
+        issue = project.issues.create(
+            {
+                "title": summary,
+                "labels": ["type:{issue_type}", f"step::{step}"],
+                "milestone_id": milestone.id if milestone else None,
+            }
+        )
+
+        return GitlabIssue(self, issue)
+
+    def get_issue(self, project_id, issue_id):
+        project = self.api.projects.get(project_id, lazy=True)
+        issue = project.issues.get(issue_id)
+        return GitlabIssue(self, issue)
+
+    @cached_property
+    def _current_user(self):
+        self.api.auth()
+        return self.api.user
+
+    def whoami(self):
+        return self._current_user.username
+
+
+@attr.s(cmp=False)
+class GitlabProject(Project):
+    tracker = attr.ib()
+    project = attr.ib()
+
+    @property
+    def id(self):
+        return self.project.id
+
+    @property
+    def name(self):
+        return self.project.name
+
+
+@attr.s
+class GitlabTransition:
+    namespace = attr.ib()
+    value = attr.ib()
+
+    def apply(self, tracker, issue):
+        issue.labels = [
+            l for l in issue.labels if not l.startswith(f"{self.namespace}::")
+        ]
+        if self.value:
+            issue.labels.append(f"{self.namespace}::{self.value}")
+        issue.save()
+
+
+@attr.s(cmp=False)
+class GitlabIssue(Issue):
+    tracker = attr.ib()
+    issue = attr.ib()
+
+    @property
+    def id(self):
+        return self.issue.iid
+
+    @property
+    def summary(self):
+        return self.issue.title
+
+    @property
+    def status(self):
+        for label in self.issue.labels:
+            if label.startswith("dev::"):
+                return label.split("::", 1)[1]
+
+    @property
+    def assignees(self):
+        return [a["username"] for a in self.issue.assignees]
+
+    @cached_property
+    def project(self):
+        return GitlabProject(
+            self.tracker,
+            self.tracker.api.projects.get(self.issue.project_id, lazy=True),
+        )
+
+    @property
+    def type(self):
+        for label in self.issue.labels:
+            if label.startswith("type::"):
+                return label.split("::", 1)[1]
+
+    @property
+    def is_subtask(self):
+        return False
+
+    @cached_property
+    def link(self):
+        return self.issue.web_url
+
+    def get_parent(self):
+        if not self.is_subtask:
+            return None
+        raise NotImplementedError
+
+    def get_epic(self):
+        raise NotImplementedError
+
+    def get_transitions(self, to_status):
+        if self.status == to_status:
+            return []
+        return [GitlabTransition("dev", to_status)]
+
+    def assign_to(self, username):
+        user = self.tracker.api.users.list(username=username)[0]
+        self.issue.assignee_id = user.id
+        self.issue.save()
+
+    def apply_transition(self, transition):
+        transition.apply(self.tracker, self.issue)
 
 
 def gitlab(lancet, config_section):
@@ -63,7 +216,8 @@ def gitlab(lancet, config_section):
 
     url, username, private_token = lancet.get_credentials(config_section)
     api = GitlabAPI(url, private_token=private_token)
-    return GitlabTracker(api)
+    group_id = lancet.config.get("tracker", "group_id")
+    return GitlabTracker(api, group_id)
 
 
 @attr.s
@@ -71,9 +225,13 @@ class JIRATracker(Tracker):
     api = attr.ib()
     board_id = attr.ib()
 
-    def create_issue(self, project_id, summary, add_to_active_sprint=False):
+    def create_issue(
+        self, project_id, summary, add_to_active_sprint=False, issue_type=None
+    ):
+        if issue_type is None:
+            issue_type = "Task"
         issue = self.api.create_issue(
-            project=project_id, issuetype="Task", summary=summary
+            project=project_id, issuetype=issue_type, summary=summary
         )
         if add_to_active_sprint:
             active_sprints = self.api.sprints(self.board_id, state="active")
@@ -81,7 +239,7 @@ class JIRATracker(Tracker):
         return JIRAIssue(self, issue)
 
     def get_issue(self, project_id, issue_id):
-        if not issue_id.startswith(project_id + '-'):
+        if not issue_id.startswith(project_id + "-"):
             assert "-" not in issue_id
             issue_id = f"{project_id}-{issue_id}"
         return JIRAIssue(self, self.api.issue(issue_id))

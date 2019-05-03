@@ -73,7 +73,7 @@ def create_issue(
             summary=summary,
             add_to_active_sprint=add_to_active_sprint,
         )
-        ts.ok(f"Created issue {issue.id}")
+        ts.ok(f"Created issue {issue.id}: {issue.link}")
     return issue
 
 

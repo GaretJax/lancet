@@ -1,6 +1,4 @@
 import click
-import github3
-from giturlparse import parse as giturlparse
 
 from ..utils import taskstatus, edit_template
 from ..helpers import get_issue, get_transition, set_issue_status, get_branch
@@ -91,7 +89,6 @@ def pull_request(ctx, base_branch, open_pr, stop_timer):
     # Update issue
     set_issue_status(lancet, issue, review_status, transition)
 
-    # TODO: Post to activity stream on JIRA?
     # TODO: Post to Slack?
 
     # Stop harvest timer

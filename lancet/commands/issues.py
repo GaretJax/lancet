@@ -45,5 +45,3 @@ def issue_add(lancet, assign, add_to_sprint, summary):
         else:
             username = assign
         assign_issue(lancet, issue, username)
-
-    click.echo("Created issue")
