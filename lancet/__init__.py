@@ -6,7 +6,7 @@ From http://en.wikipedia.org/wiki/Scalpel:
     hobby knife).
 """
 
-__author__ = 'Jonathan Stoppani'
-__email__ = 'jonathan@stoppani.name'
-__version__ = '0.8.0'
-__url__ = 'https://github.com/GaretJax/lancet'
+__author__ = "Jonathan Stoppani"
+__email__ = "jonathan@stoppani.name"
+__version__ = "0.8.0"
+__url__ = "https://github.com/GaretJax/lancet"

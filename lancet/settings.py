@@ -8,25 +8,22 @@ import importlib
 from collections import defaultdict
 
 
-PACKAGE = 'lancet'
-LOCAL_CONFIG = '.{}'.format(PACKAGE)
-DEFAULT_CONFIG = os.path.join(os.path.dirname(__file__),
-                              'default-settings.ini')
-SYSTEM_CONFIG = '/etc/{0}/{0}.conf'.format(PACKAGE)
-USER_CONFIG = os.path.expanduser(os.path.join('~', LOCAL_CONFIG))
-PROJECT_CONFIG = os.path.join(os.path.realpath('.'), LOCAL_CONFIG)
+PACKAGE = "lancet"
+LOCAL_CONFIG = ".{}".format(PACKAGE)
+DEFAULT_CONFIG = os.path.join(
+    os.path.dirname(__file__), "default-settings.ini"
+)
+SYSTEM_CONFIG = "/etc/{0}/{0}.conf".format(PACKAGE)
+USER_CONFIG = os.path.expanduser(os.path.join("~", LOCAL_CONFIG))
+PROJECT_CONFIG = os.path.join(os.path.realpath("."), LOCAL_CONFIG)
 
-DEFAULT_FILES = [
-    DEFAULT_CONFIG,
-    SYSTEM_CONFIG,
-    USER_CONFIG,
-]
+DEFAULT_FILES = [DEFAULT_CONFIG, SYSTEM_CONFIG, USER_CONFIG]
 
 
 class ConfigParser(configparser.ConfigParser):
     def getclass(self, section, key):
         import_path = self.get(section, key)
-        module_path, callable_name = import_path.rsplit('.', 1)
+        module_path, callable_name = import_path.rsplit(".", 1)
         return getattr(importlib.import_module(module_path), callable_name)
 
     def getlist(self, section, key, coerce=str):

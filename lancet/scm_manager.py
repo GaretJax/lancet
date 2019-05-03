@@ -37,13 +37,15 @@ class GitlabSCMManager(SCMManager):
             project_path = project_path[:-4]
         prj = self.api.projects.get(urlquote(project_path))
         try:
-            mr = prj.mergerequests.create({
-                "source_branch": source_branch,
-                "target_branch": target_branch,
-                "title": summary,
-                "description": description,
-                "remove_source_branch": True,
-            })
+            mr = prj.mergerequests.create(
+                {
+                    "source_branch": source_branch,
+                    "target_branch": target_branch,
+                    "title": summary,
+                    "description": description,
+                    "remove_source_branch": True,
+                }
+            )
         except GitlabCreateError as e:
             if e.error_message and "already exists" in e.error_message[0]:
                 # TODO: fetch PR and pass in

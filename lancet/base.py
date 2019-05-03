@@ -34,10 +34,7 @@ class WarnIntegrationHelper(NullIntegrationHelper):
             click.secho("")
             click.secho("    lancet _setup_helper | source /dev/stdin")
             click.secho("")
-            click.secho(
-                "  See {} for additional details.".format(
-                )
-            )
+            click.secho("  See {} for additional details.".format())
             click.secho("")
 
 

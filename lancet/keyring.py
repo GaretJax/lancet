@@ -14,7 +14,7 @@ class PasswordstoreKeyring(KeyringBackend):
         if result.returncode != 0:
             return None
         password, login, *other = result.stdout.decode("utf-8").split("\n")
-        if login != f'login: {username}':
+        if login != f"login: {username}":
             return None
         return password
 
