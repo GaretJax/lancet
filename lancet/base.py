@@ -1,10 +1,7 @@
 import shlex
-import click
-import subprocess
 
 import attr
-import keyring
-from keyring.backend import KeyringBackend
+import click
 
 from .utils import cached_property, taskstatus
 from .git import Repository
@@ -16,34 +13,6 @@ class NullIntegrationHelper:
 
     def close(self):
         pass
-
-
-class PasswordstoreKeyring(KeyringBackend):
-    priority = 1
-
-    def get_password(self, servicename, username):
-        result = subprocess.run(
-            ["pass", "show", servicename.rstrip("/")], stdout=subprocess.PIPE
-        )
-        if result.returncode != 0:
-            return None
-        password, login, *other = result.stdout.decode("utf-8").split("\n")
-        if login != f'login: {username}':
-            return None
-        return password
-
-    def set_password(self, servicename, username, password):
-        subprocess.run(
-            ["pass", "insert", "--force", "--multiline", servicename],
-            stdout=subprocess.PIPE,
-            input=f"{password}\nlogin: {username}".encode("utf-8"),
-            check=True,
-        )
-
-    def delete_password(self, servicename, username, password):
-        pass
-
-# keyring.set_keyring(PasswordstoreKeyring())
 
 
 class WarnIntegrationHelper(NullIntegrationHelper):
@@ -67,7 +36,6 @@ class WarnIntegrationHelper(NullIntegrationHelper):
             click.secho("")
             click.secho(
                 "  See {} for additional details.".format(
-                    click.style("https://lancet.rtd.org", fg="green")
                 )
             )
             click.secho("")
@@ -92,7 +60,6 @@ class Lancet:
     config = attr.ib()
     integration_helper = attr.ib()
     call_on_close = attr.ib(default=lambda: None)
-    keyring = attr.ib(factory=keyring.get_keyring)
 
     def defer_to_shell(self, *args, **kwargs):
         return self.integration_helper.register(*args, **kwargs)
@@ -148,6 +115,10 @@ class Lancet:
     def repo(self):
         # TODO: Make path more dynamic
         return Repository("./.git")
+
+    @cached_property
+    def keyring(self):
+        return self._load_from_configurable_factory("keyring")
 
     @cached_property
     def scm_manager(self):
