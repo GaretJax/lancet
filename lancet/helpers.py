@@ -77,7 +77,7 @@ def create_issue(
     return issue
 
 
-def assign_issue(lancet, issue, username, active_status=None):
+def assign_issue(lancet, issue, username, active_status):
     with taskstatus("Assigning issue to you") as ts:
         if not issue.assignees or username not in issue.assignees:
             if issue.status == active_status:
