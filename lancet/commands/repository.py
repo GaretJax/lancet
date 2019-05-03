@@ -1,7 +1,14 @@
 import click
 
+from ..scm_manager import PullRequestAlreadyExists
 from ..utils import taskstatus, edit_template
-from ..helpers import get_issue, get_transition, set_issue_status, get_branch
+from ..helpers import (
+    get_issue,
+    get_transition,
+    set_issue_status,
+    get_branch,
+    assign_issue,
+)
 
 
 @click.command()
@@ -20,8 +27,9 @@ from ..helpers import get_issue, get_transition, set_issue_status, get_branch
     default=False,
     help="Opens the link with the pull request.",
 )
+@click.option("-a", "--assign")
 @click.pass_context
-def pull_request(ctx, base_branch, open_pr, stop_timer):
+def pull_request(ctx, base_branch, open_pr, stop_timer, assign):
     """Create a new pull request for this issue."""
     lancet = ctx.obj
 
@@ -89,6 +97,15 @@ def pull_request(ctx, base_branch, open_pr, stop_timer):
     # Update issue
     set_issue_status(lancet, issue, review_status, transition)
 
+    if assign:
+        if assign == "me":
+            username = lancet.tracker.whoami()
+        else:
+            username = assign
+        active_status = lancet.config.get("tracker", "active_status")
+        assign_issue(lancet, issue, username, active_status)
+
+    # TODO: Also assign the PR?
     # TODO: Post to Slack?
 
     # Stop harvest timer

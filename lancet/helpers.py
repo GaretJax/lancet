@@ -78,15 +78,17 @@ def create_issue(
 
 
 def assign_issue(lancet, issue, username, active_status):
-    with taskstatus("Assigning issue to you") as ts:
+    with taskstatus(f"Assigning issue to {username}") as ts:
         if not issue.assignees or username not in issue.assignees:
             if issue.status == active_status:
-                ts.abort("Issue already active and not assigned to you")
+                ts.abort(
+                    f"Issue already active and not assigned to {username}"
+                )
             else:
                 issue.assign_to(username)
-                ts.ok("Issue assigned to you")
+                ts.ok(f"Issue assigned to {username}")
         else:
-            ts.ok("Issue already assigned to you")
+            ts.ok(f"Issue already assigned to {username}")
 
 
 def get_branch(lancet, issue, base_branch=None, create=True):

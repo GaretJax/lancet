@@ -36,7 +36,6 @@ class GitlabSCMManager(SCMManager):
         if project_path.endswith(".git"):
             project_path = project_path[:-4]
         prj = self.api.projects.get(urlquote(project_path))
-        err = None
         try:
             mr = prj.mergerequests.create({
                 "source_branch": source_branch,
