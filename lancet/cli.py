@@ -269,7 +269,7 @@ def main(ctx, debug):
             sys.excepthook = exception_handler
 
 
-@main.command()
+@main.command(name="_setup_helper")
 def _setup_helper():
     """Print the shell integration code."""
     base = os.path.abspath(os.path.dirname(__file__))
@@ -278,7 +278,7 @@ def _setup_helper():
         click.echo(fh.read())
 
 
-@main.command()
+@main.command(name="_commands")
 @click.pass_context
 def _commands(ctx):
     """Prints a list of commands for shell completion hooks."""
@@ -294,7 +294,7 @@ def _commands(ctx):
         click.echo("{}:{}".format(subcommand, help))
 
 
-@main.command()
+@main.command(name="_arguments")
 @click.argument("command_name", metavar="command", required=False)
 @click.pass_context
 def _arguments(ctx, command_name=None):
@@ -338,7 +338,7 @@ def _arguments(ctx, command_name=None):
             click.echo(":{}".format(option))
 
 
-@main.command()
+@main.command(name="_autocomplete")
 @click.argument("shell", required=False)
 @click.pass_context
 def _autocomplete(ctx, shell):

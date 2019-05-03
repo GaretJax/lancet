@@ -6,7 +6,8 @@ from lancet.utils import taskstatus, edit_template
 
 
 VERSION_FILTER_QUERY = (
-    'project = {project_key} and fixVersion = {version_name}')
+    "project = {project_key} and fixVersion = {version_name}"
+)
 
 
 def get_version(lancet, project_key, version_name):
@@ -18,68 +19,96 @@ def get_version(lancet, project_key, version_name):
 
 
 def get_issues_fixed_in_version(lancet, project_key, version_name):
-    return lancet.tracker.search_issues(VERSION_FILTER_QUERY.format(
-        project_key=project_key, version_name=version_name))
+    return lancet.tracker.search_issues(
+        VERSION_FILTER_QUERY.format(
+            project_key=project_key, version_name=version_name
+        )
+    )
 
 
 @click.command()
 @click.pass_obj
 def list_versions(lancet):
-    project_key = lancet.config.get('tracker', 'default_project')
+    project_key = lancet.config.get("tracker", "default_project")
 
     project = lancet.tracker.project(project_key)
     versions = lancet.tracker.project_versions(project)
 
-    table = [(
-        (click.style(' ✓', fg='green') if v.released
-         else click.style(' •', 'yellow')),
-        v.name,
-        v.description,
-    ) for v in reversed(versions)]
+    table = [
+        (
+            (
+                click.style(" ✓", fg="green")
+                if v.released
+                else click.style(" •", "yellow")
+            ),
+            v.name,
+            v.description,
+        )
+        for v in reversed(versions)
+    ]
 
-    headers = ['Rel', 'Name', 'Description']
-    click.echo(tabulate(table, headers, tablefmt='simple'))
+    headers = ["Rel", "Name", "Description"]
+    click.echo(tabulate(table, headers, tablefmt="simple"))
 
 
 @click.command()
-@click.option('-t', '--target',
-              help='Target of the release (either a commit or a branch name).')
-@click.option('-d', '--draft/--no-draft', default=True,
-              help='Creates the release in draft mode (default to true).')
-@click.option('-p', '--prerelease/--no-prerelease', default=False,
-              help='Creates a prerelease.')
-@click.option('-o', '--open/--no-open', 'open_link', default=False,
-              help='Opens the link with the release.')
-@click.argument('version_name', metavar='version')
+@click.option(
+    "-t",
+    "--target",
+    help="Target of the release (either a commit or a branch name).",
+)
+@click.option(
+    "-d",
+    "--draft/--no-draft",
+    default=True,
+    help="Creates the release in draft mode (default to true).",
+)
+@click.option(
+    "-p",
+    "--prerelease/--no-prerelease",
+    default=False,
+    help="Creates a prerelease.",
+)
+@click.option(
+    "-o",
+    "--open/--no-open",
+    "open_link",
+    default=False,
+    help="Opens the link with the release.",
+)
+@click.argument("version_name", metavar="version")
 @click.pass_obj
 def release_notes(lancet, version_name, target, draft, prerelease, open_link):
-    project_key = lancet.config.get('tracker', 'default_project')
+    project_key = lancet.config.get("tracker", "default_project")
 
-    with taskstatus('Getting version') as ts:
+    with taskstatus("Getting version") as ts:
         version = get_version(lancet, project_key, version_name)
         if not version:
-            ts.abort('Version {} not found for project {}',
-                     version_name, project_key)
+            ts.abort(
+                "Version {} not found for project {}",
+                version_name,
+                project_key,
+            )
 
-        ts.ok('Got version {}', version.name)
+        ts.ok("Got version {}", version.name)
 
-    with taskstatus('Getting issues fixed in version {}', version.name) as ts:
+    with taskstatus("Getting issues fixed in version {}", version.name) as ts:
         issues = get_issues_fixed_in_version(lancet, project_key, version_name)
-        ts.ok('Found {} issues', len(issues))
+        ts.ok("Found {} issues", len(issues))
 
-    with taskstatus('Creating release') as ts:
+    with taskstatus("Creating release") as ts:
         notes = edit_template(
-            lancet.config.get('tracker', 'release_notes_template'),
+            lancet.config.get("tracker", "release_notes_template"),
             issues=issues,
-            version=version
+            version=version,
         )
         if not notes:
-            ts.abort('No release notes provided')
+            ts.abort("No release notes provided")
 
-        name, notes = notes.split('\n\n', 1)
+        name, notes = notes.split("\n\n", 1)
 
         if target is None:
-            target = lancet.config.get('repository', 'base_branch')
+            target = lancet.config.get("repository", "base_branch")
 
         release = lancet.github_repo.create_release(
             version_name,
@@ -90,7 +119,7 @@ def release_notes(lancet, version_name, target, draft, prerelease, open_link):
             prerelease=prerelease,
         )
 
-        ts.ok('Release created at {}', release.html_url)
+        ts.ok("Release created at {}", release.html_url)
 
     if open_link:
         click.launch(release.html_url)

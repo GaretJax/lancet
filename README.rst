@@ -82,3 +82,7 @@ A lot of commands are still missing, as for example:
   cleanup afterwards). Can include rebasing helpers.
 * Other issue tracker/Harvest interaction utilities (``list``, ``search``,
   ``comment``, ...)
+
+* Harvest: https://id.getharvest.com/developers (user_id: number in the profile url, username: account id on developers)
+* JIRA: https://id.atlassian.com/manage/api-tokens (username: your divio.ch email address)
+* Gitlab: https://gitlab.com/profile/personal_access_tokens (api)
