@@ -63,14 +63,16 @@ class Setup(object):
     def version():
         data = Setup.read(os.path.join(PACKAGE, "__init__.py"))
         version = (
-            re.search('__version__\s*=\s*u?"([^"]+)"', data).group(1).strip()
+            re.search(r'__version__\s*=\s*u?"([^"]+)"', data).group(1).strip()
         )
         return version
 
     @staticmethod
     def url():
         data = Setup.read(os.path.join(PACKAGE, "__init__.py"))
-        version = re.search('__url__\s*=\s*u?"([^"]+)"', data).group(1).strip()
+        version = (
+            re.search(r'__url__\s*=\s*u?"([^"]+)"', data).group(1).strip()
+        )
         return version
 
     @staticmethod
