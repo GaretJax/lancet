@@ -96,7 +96,7 @@ class GitlabTracker(Tracker):
         issue = project.issues.create(
             {
                 "title": summary,
-                "labels": [f"type:{issue_type}", f"step::{step}"],
+                "labels": [f"type::{issue_type}", f"step::{step}"],
                 "milestone_id": milestone.id if milestone else None,
             }
         )
