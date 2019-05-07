@@ -91,6 +91,15 @@ def assign_issue(lancet, issue, username, active_status):
             ts.ok(f"Issue already assigned to {username}")
 
 
+def assign_pull_request(lancet, pr, username):
+    with taskstatus(f"Assigning pull request to {username}") as ts:
+        if not pr.assignees or username not in pr.assignees:
+            pr.assign_to(username)
+            ts.ok(f"Pull request assigned to {username}")
+        else:
+            ts.ok(f"Pull request already assigned to {username}")
+
+
 def get_branch(lancet, issue, base_branch=None, create=True):
     if not base_branch:
         base_branch = lancet.config.get("repository", "base_branch")

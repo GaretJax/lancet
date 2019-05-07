@@ -16,6 +16,9 @@ class PullRequest:
     def link(self):
         raise NotImplementedError
 
+    def assign_to(self, username):
+        raise NotImplementedError
+
 
 @attr.s
 class PullRequestAlreadyExists(Exception):
@@ -61,6 +64,11 @@ class GitlabPullRequest(PullRequest):
     @property
     def link(self):
         return self.merge_request.web_url
+
+    def assign_to(self, username):
+        user = self.manager.api.users.list(username=username)[0]
+        self.merge_request.assignee_id = user.id
+        self.merge_request.save()
 
 
 def gitlab(lancet, config_section):

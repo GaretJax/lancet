@@ -7,7 +7,7 @@ from ..helpers import (
     get_transition,
     set_issue_status,
     get_branch,
-    assign_issue,
+    assign_pull_request,
 )
 
 
@@ -102,8 +102,7 @@ def pull_request(ctx, base_branch, open_pr, stop_timer, assign):
             username = lancet.tracker.whoami()
         else:
             username = assign
-        active_status = lancet.config.get("tracker", "active_status")
-        assign_issue(lancet, issue, username, active_status)
+        assign_pull_request(lancet, issue, username)
 
     # TODO: Also assign the PR?
     # TODO: Post to Slack?
