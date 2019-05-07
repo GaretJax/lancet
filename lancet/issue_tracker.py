@@ -68,11 +68,18 @@ class GitlabTracker(Tracker):
         project = self.api.projects.get(project_id, lazy=True)
         group = self.api.groups.get(self.group_id, lazy=True)
 
+        def fromisoformat(datestr):
+            # datetime.date.isoformat is only available on python 3.7+
+            year, month, day = datestr.split("-")
+            return datetime.date(
+                year=int(year), month=int(month), day=int(day)
+            )
+
         def is_current(milestone):
             return (
-                datetime.date.fromisoformat(milestone.start_date)
+                fromisoformat(milestone.start_date)
                 <= datetime.date.today()
-                <= datetime.date.fromisoformat(milestone.due_date)
+                <= fromisoformat(milestone.due_date)
             )
 
         if add_to_active_sprint:
