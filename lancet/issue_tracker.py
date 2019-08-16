@@ -76,11 +76,7 @@ class GitlabTracker(Tracker):
             )
 
         def is_current(milestone):
-            return (
-                fromisoformat(milestone.start_date)
-                <= datetime.date.today()
-                <= fromisoformat(milestone.due_date)
-            )
+            return milestone.title.startswith("*")
 
         if add_to_active_sprint:
             step = "dev"
