@@ -11,5 +11,5 @@ git-url-parse
 Jinja2
 tabulate
 sentry-sdk
-pygit2>=1.5,<1.6
+pygit2>=1.6,<1.7
 python-gitlab
